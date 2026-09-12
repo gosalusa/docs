@@ -2,6 +2,8 @@
 title: Schema
 type: docs
 prev: docs/database/builder
+next: docs/dependency-injection
+weight: 3
 ---
 
 The `schema` package builds the SQL statements that define your database:
@@ -43,18 +45,18 @@ err := schema.Create("users", func(table *schema.Blueprint) {
 
 ### Column types
 
-| method              | SQL type                            |
-| ------------------- | ----------------------------------- |
-| `String(name)`      | a sized string, e.g. `VARCHAR`      |
-| `Text(name)`        | a long text value                   |
-| `Bool(name)`        | a boolean                           |
-| `Int`, `Int8`, `Int16`, `Int32`, `Int64` | signed integers        |
-| `UInt`, `UInt8`, `UInt16`, `UInt32`, `UInt64` | unsigned integers   |
-| `Float`, `Float32`, `Float64` | floating point numbers      |
-| `JSON(name)`        | JSON data                          |
-| `Date(name)`        | a calendar date                     |
-| `DateTime(name)`    | a date and time                     |
-| `Blob(name)`        | raw binary data                     |
+| method                                        | SQL type                       |
+| --------------------------------------------- | ------------------------------ |
+| `String(name)`                                | a sized string, e.g. `VARCHAR` |
+| `Text(name)`                                  | a long text value              |
+| `Bool(name)`                                  | a boolean                      |
+| `Int`, `Int8`, `Int16`, `Int32`, `Int64`      | signed integers                |
+| `UInt`, `UInt8`, `UInt16`, `UInt32`, `UInt64` | unsigned integers              |
+| `Float`, `Float32`, `Float64`                 | floating point numbers         |
+| `JSON(name)`                                  | JSON data                      |
+| `Date(name)`                                  | a calendar date                |
+| `DateTime(name)`                              | a date and time                |
+| `Blob(name)`                                  | raw binary data                |
 
 `OfType(datatype, name)` adds a column of an arbitrary dialect data type.
 
@@ -63,17 +65,17 @@ err := schema.Create("users", func(table *schema.Blueprint) {
 Each type method returns a `ColumnBuilder` that is configured by chaining
 modifiers, all of which mutate and return the builder:
 
-| modifier                  | effect                                             |
-| ------------------------- | -------------------------------------------------- |
-| `Nullable()` / `NotNullable()` | allow or forbid NULL                          |
-| `Primary()`               | mark the column as part of the primary key         |
-| `AutoIncrement()`         | let the database assign the value on insert        |
-| `Default(v)`              | set a default value                                |
-| `DefaultCurrentTime()`    | default to the current timestamp                   |
-| `Unique()`                | add a unique constraint                            |
-| `Index()`                 | create an index on the column                      |
-| `Size(s)`                 | set the string size, e.g. `VARCHAR(100)`          |
-| `After(column)`           | position the column after another (MySQL)          |
+| modifier                       | effect                                      |
+| ------------------------------ | ------------------------------------------- |
+| `Nullable()` / `NotNullable()` | allow or forbid NULL                        |
+| `Primary()`                    | mark the column as part of the primary key  |
+| `AutoIncrement()`              | let the database assign the value on insert |
+| `Default(v)`                   | set a default value                         |
+| `DefaultCurrentTime()`         | default to the current timestamp            |
+| `Unique()`                     | add a unique constraint                     |
+| `Index()`                      | create an index on the column               |
+| `Size(s)`                      | set the string size, e.g. `VARCHAR(100)`    |
+| `After(column)`                | position the column after another (MySQL)   |
 
 A composite primary key is declared separately with `PrimaryKey`, taking the
 columns in order:

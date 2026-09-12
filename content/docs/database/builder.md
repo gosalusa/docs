@@ -3,6 +3,7 @@ title: Builder
 type: docs
 prev: docs/database/models
 next: docs/database/schema
+weight: 2
 ---
 
 The `builder` package provides a fluent, chainable query builder for the
