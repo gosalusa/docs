@@ -1,17 +1,17 @@
 ---
-title: My Site
+title: Salusa
 toc: false
 ---
 
-This is the landing page.
+Salusa is a group of utilities to speed up web development in go. They can be
+used individually in existing projects or all together with the project
+template.
 
 ## Explore
 
 {{< cards >}}
-  {{< card link="docs" title="Docs" icon="book-open" >}}
-  {{< card link="about" title="About" icon="user" >}}
+{{< card link="docs" title="Docs" icon="book-open" >}}
+{{< card link="about" title="About" icon="user" >}}
 {{< /cards >}}
 
 ## Documentation
-
-For more information, visit [Hextra](https://imfing.github.io/hextra).
