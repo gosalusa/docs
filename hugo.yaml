@@ -33,7 +33,7 @@ menu:
         type: search
     - name: GitHub
       weight: 5
-      url: "https://github.com/abibby/salusa"
+      url: "https://github.com/gosalusa/framework"
       params:
         icon: github
 
@@ -48,4 +48,4 @@ params:
 
   editURL:
     enable: true
-    base: "https://github.com/gosalusa/salusa-docs/edit/main/content"
+    base: "https://github.com/gosalusa/docs/edit/main/content"
