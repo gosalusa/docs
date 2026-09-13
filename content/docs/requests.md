@@ -6,8 +6,8 @@ next: docs/views
 weight: 6
 ---
 
-The `request` package turns HTTP requests into typed Go structs and back into
-JSON responses. `request.Handler` builds an `http.Handler` from a function that
+The [`request`](https://pkg.go.dev/gosalusa.com/request) package turns HTTP requests into typed Go structs and back into
+JSON responses. [`request.Handler`](https://pkg.go.dev/gosalusa.com/request#Handler) builds an `http.Handler` from a function that
 takes a request struct and returns a response.
 
 ## Defining a handler
@@ -33,7 +33,7 @@ userCreate := request.Handler(func(r *CreateUserRequest) (*CreateUserResponse, e
 
 ## Populating the request
 
-`Run` reads the request into the struct. Every exported field that should be
+[`Run`](https://pkg.go.dev/gosalusa.com/request#Run) reads the request into the struct. Every exported field that should be
 populated must carry one of these tags, or the handler's `Validate` fails at
 startup:
 
@@ -59,29 +59,29 @@ query, as described in the models and DI pages.
 
 The handler's return value is converted to a response with `respond`:
 
-- a `Responder` (an `http.Handler` too, or `*http.Response`) is served as-is;
+- a [`Responder`](https://pkg.go.dev/gosalusa.com/request#Responder) (an `http.Handler` too, or `*http.Response`) is served as-is;
 - an `http.Handler` is invoked directly;
-- anything else is encoded as JSON with `NewJSONResponse`.
+- anything else is encoded as JSON with [`NewJSONResponse`](https://pkg.go.dev/gosalusa.com/request#NewJSONResponse).
 
-`NewResponse(body)` builds a `Responder` from an `io.Reader` with a chainable
-`SetStatus`/`AddHeader` builder, `NewHTMLResponse` wraps it with a
+[`NewResponse(body)`](https://pkg.go.dev/gosalusa.com/request#NewResponse) builds a `Responder` from an `io.Reader` with a chainable
+[`SetStatus`](https://pkg.go.dev/gosalusa.com/request#ResponseBuilder.SetStatus)/[`AddHeader`](https://pkg.go.dev/gosalusa.com/request#ResponseBuilder.AddHeader) builder, [`NewHTMLResponse`](https://pkg.go.dev/gosalusa.com/request#NewHTMLResponse) wraps it with a
 `text/html` content type, and `NewJSONResponse(data)` sets the
 `application/json` content type with indent.
 
 ## Errors
 
-Errors returned from a handler become responses. A `ValidationError` (a
+Errors returned from a handler become responses. A [`ValidationError`](https://pkg.go.dev/gosalusa.com/request#ValidationError) (a
 `map[string][]string` of field errors) is turned into a 422 response via
-`NewHTTPError`. The `StatusError` constants provide HTTP statuses as errors, for
-example `request.ErrStatusNotFound` or `request.ErrStatusUnauthorized`.
+[`NewHTTPError`](https://pkg.go.dev/gosalusa.com/request#NewHTTPError). The [`StatusError`](https://pkg.go.dev/gosalusa.com/request#StatusError) constants provide HTTP statuses as errors, for
+example [`request.ErrStatusNotFound`](https://pkg.go.dev/gosalusa.com/request#ErrStatusNotFound) or [`request.ErrStatusUnauthorized`](https://pkg.go.dev/gosalusa.com/request#ErrStatusUnauthorized).
 
-`HTTPError` wraps any error with a status; `ErrorHandler` dispatches an error to
+[`HTTPError`](https://pkg.go.dev/gosalusa.com/request#HTTPError) wraps any error with a status; [`ErrorHandler`](https://pkg.go.dev/gosalusa.com/request#ErrorHandler) dispatches an error to
 a `Responder` if it implements one, and falls back to a `500` otherwise. An
-`HTMLError` provides custom HTML for the error page.
+[`HTMLError`](https://pkg.go.dev/gosalusa.com/request#HTMLError) provides custom HTML for the error page.
 
 ## Middleware
 
-`HandleErrors` recovers panics and collects errors so a failing handler
+[`HandleErrors`](https://pkg.go.dev/gosalusa.com/request#HandleErrors) recovers panics and collects errors so a failing handler
 produces one response through `ErrorHandler`; custom error handlers can be
 passed to pick the response:
 
@@ -94,14 +94,14 @@ r.Use(request.HandleErrors(func(ctx context.Context, err error) http.Handler {
 }))
 ```
 
-`DIMiddleware` puts the current `*http.Request` and `http.ResponseWriter` in the
+[`DIMiddleware`](https://pkg.go.dev/gosalusa.com/request#DIMiddleware) puts the current `*http.Request` and `http.ResponseWriter` in the
 request context so they can be injected. The kernel adds it automatically, and
-`request.Register(ctx)` registers both as dependencies during bootstrap.
+[`request.Register(ctx)`](https://pkg.go.dev/gosalusa.com/request#Register) registers both as dependencies during bootstrap.
 
 ## Validation
 
 After the struct is populated it is validated, and failure returns a
-`ValidationError`. Rules come from the `validate` tag separated by `|`, with
+[`ValidationError`](https://pkg.go.dev/gosalusa.com/request#ValidationError). Rules come from the `validate` tag separated by `|`, with
 `:` for arguments. `required` is handled specially, and the common rules are:
 
 | rule                      | applies to                              |
@@ -115,19 +115,19 @@ After the struct is populated it is validated, and failure returns a
 | `accepted`, `declined`    | booleans                                |
 | `after`, `after_or_equal`, `before`, `before_or_equal` | times             |
 
-The `validate` package defines the `validate.Validator` interface and the
-`validate.Append` helper used by the kernel, router, and DI validator to
+The [`validate`](https://pkg.go.dev/gosalusa.com/validate) package defines the [`validate.Validator`](https://pkg.go.dev/gosalusa.com/validate#Validator) interface and the
+[`validate.Append`](https://pkg.go.dev/gosalusa.com/validate#Append) helper used by the kernel, router, and DI validator to
 collect startup validation errors.
 
 ## OpenAPI
 
-`RequestHandler` implements `openapidoc.Operationer`. `Operation` derives query
+[`RequestHandler`](https://pkg.go.dev/gosalusa.com/request#RequestHandler) implements [`openapidoc.Operationer`](https://pkg.go.dev/gosalusa.com/openapidoc#Operationer). [`Operation`](https://pkg.go.dev/gosalusa.com/request#RequestHandler.Operation) derives query
 and path parameters, the body schema, and the default response schema from the
 request and response types, and a custom operation can be supplied with
-`Docs(*spec.OperationProps)`.
+[`Docs(*spec.OperationProps)`](https://pkg.go.dev/gosalusa.com/request#RequestHandler.Docs).
 
 ## Internal helpers
 
-`Run(req, requestStruct)` is exported for embedding request handling in custom
-handler types, as are `Respond`, `RespondError`, and the `File`/`FileInfo`
+[`Run(req, requestStruct)`](https://pkg.go.dev/gosalusa.com/request#Run) is exported for embedding request handling in custom
+handler types, as are [`Respond`](https://pkg.go.dev/gosalusa.com/request#Respond), [`RespondError`](https://pkg.go.dev/gosalusa.com/request#RespondError), and the [`File`](https://pkg.go.dev/gosalusa.com/request#File)/[`FileInfo`](https://pkg.go.dev/gosalusa.com/request#FileInfo)
 types that expose an uploaded file through the `io/fs` interfaces.

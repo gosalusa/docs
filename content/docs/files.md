@@ -6,13 +6,13 @@ next: docs/environment
 weight: 14
 ---
 
-The `filesystem` and `fileserver` packages provide an injectable filesystem and
+The [`filesystem`](https://pkg.go.dev/gosalusa.com/filesystem) and [`fileserver`](https://pkg.go.dev/gosalusa.com/fileserver) packages provide an injectable filesystem and
 an HTTP handler for serving files with an SPA-style fallback.
 
 ## Registering a filesystem
 
-`filesystem.Register(ctx, cfg)` registers a lazy singleton `fs.FS` built from a
-`Config` — a type with `FS() fs.FS`. `NewLocalFS(root)` builds a config from a
+[`filesystem.Register(ctx, cfg)`](https://pkg.go.dev/gosalusa.com/filesystem#Register) registers a lazy singleton `fs.FS` built from a
+[`Config`](https://pkg.go.dev/gosalusa.com/filesystem#Config) — a type with `FS() fs.FS`. [`NewLocalFS(root)`](https://pkg.go.dev/gosalusa.com/filesystem#NewLocalFS) builds a config from a
 directory path. The generated template uses it for user-uploaded files:
 
 ```go
@@ -42,7 +42,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 ## Serving static files with SPA fallback
 
-`fileserver.WithFallback(root, basePath, fallbackPath, data)` returns an
+[`fileserver.WithFallback(root, basePath, fallbackPath, data)`](https://pkg.go.dev/gosalusa.com/fileserver#WithFallback) returns an
 `http.Handler` that serves files from an `fs.FS` with a catch-all route. When
 the requested path matches a real file, its content is served with the correct
 MIME type; otherwise the fallback template is rendered with the provided data.

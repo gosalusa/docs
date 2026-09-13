@@ -6,15 +6,15 @@ next: docs/application
 weight: 3
 ---
 
-The `di` package is the core of the Salusa framework. Dependencies are
-registered as factories on a `DependencyProvider` and are either resolved
-directly with `Resolve` or filled implicitly into structs whose fields carry an
+The [`di`](https://pkg.go.dev/gosalusa.com/di) package is the core of the Salusa framework. Dependencies are
+registered as factories on a [`DependencyProvider`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider) and are either resolved
+directly with [`Resolve`](https://pkg.go.dev/gosalusa.com/di#Resolve) or filled implicitly into structs whose fields carry an
 `inject` tag.
 
 ## Registering dependencies
 
 Registration happens on a `context.Context`; the context determines which
-`DependencyProvider` receives the registration. `TestDependencyProviderContext`
+`DependencyProvider` receives the registration. [`TestDependencyProviderContext`](https://pkg.go.dev/gosalusa.com/di#TestDependencyProviderContext)
 returns a background context carrying a fresh provider, handy in tests and in
 `init` in the generated template:
 
@@ -29,20 +29,20 @@ The `Register` family:
 
 | function                                        | behavior                                                                  |
 | ----------------------------------------------- | ------------------------------------------------------------------------- |
-| `Register(ctx, factory)`                        | calls the factory on every resolve                                         |
-| `RegisterWith[T, W](ctx, factory)`              | fills a `W` with dependencies, then calls the factory on every resolve     |
-| `RegisterSingleton(ctx, factory)`               | builds once at registration time, returns the same value on every resolve  |
-| `RegisterLazySingleton(ctx, factory)`           | builds at most once, on the first resolve                                  |
-| `RegisterLazySingletonWith[T, W](ctx, factory)` | fills a `W` with dependencies, then builds at most once                    |
-| `RegisterValue(ctx, t, factory)`                | registers a factory for a type known only dynamically (`reflect.Type`)     |
+| [`Register(ctx, factory)`](https://pkg.go.dev/gosalusa.com/di#Register)                        | calls the factory on every resolve                                         |
+| [`RegisterWith[T, W](ctx, factory)`](https://pkg.go.dev/gosalusa.com/di#RegisterWith)          | fills a `W` with dependencies, then calls the factory on every resolve     |
+| [`RegisterSingleton(ctx, factory)`](https://pkg.go.dev/gosalusa.com/di#RegisterSingleton)      | builds once at registration time, returns the same value on every resolve  |
+| [`RegisterLazySingleton(ctx, factory)`](https://pkg.go.dev/gosalusa.com/di#RegisterLazySingleton) | builds at most once, on the first resolve                                  |
+| [`RegisterLazySingletonWith[T, W](ctx, factory)`](https://pkg.go.dev/gosalusa.com/di#RegisterLazySingletonWith) | fills a `W` with dependencies, then builds at most once                    |
+| [`RegisterValue(ctx, t, factory)`](https://pkg.go.dev/gosalusa.com/di#RegisterValue)            | registers a factory for a type known only dynamically (`reflect.Type`)     |
 
-`NewDependencyProvider()` creates an independent provider that can resolve
+[`NewDependencyProvider()`](https://pkg.go.dev/gosalusa.com/di#NewDependencyProvider) creates an independent provider that can resolve
 itself and the surrounding `context.Context`. Registering the same type twice
 replaces the previous factory.
 
 ## Resolving dependencies
 
-`Resolve[T]` builds a value of type `T` from the provider carried by `ctx`:
+[`Resolve[T]`](https://pkg.go.dev/gosalusa.com/di#Resolve) builds a value of type `T` from the provider carried by `ctx`:
 
 ```go
 cfg, err := di.Resolve[*Config](ctx)
@@ -53,7 +53,7 @@ of being built by a factory.
 
 ## Filling structs
 
-A struct whose fields carry an `inject` tag can be filled with `Fill`. The first
+A struct whose fields carry an `inject` tag can be filled with [`Fill`](https://pkg.go.dev/gosalusa.com/di#Fill). The first
 tag value names the dependency and is passed to the factory, which lets one
 factory serve dependencies of the same type under different names. The remaining
 values are flags; `optional` leaves the field as its zero value when the
@@ -71,7 +71,7 @@ filled, err := di.Fill(ctx, &handler{})
 
 Fields without an `inject` tag are left untouched. A dependency that is not
 registered and is not `optional` produces an error wrapping
-`di.ErrNotRegistered`.
+[`di.ErrNotRegistered`](https://pkg.go.dev/gosalusa.com/di#ErrNotRegistered).
 
 ## Dependency-aware factories
 
@@ -92,8 +92,8 @@ di.RegisterLazySingletonWith(ctx, func(deps mailerDeps) (*Mailer, error) {
 
 ## Wrapping functions
 
-`PrepareFunc` turns a function whose extra parameters are dependencies into a
-function with a fixed signature. `PrepareFuncCtx` is the same, resolving the
+[`PrepareFunc`](https://pkg.go.dev/gosalusa.com/di#PrepareFunc) turns a function whose extra parameters are dependencies into a
+function with a fixed signature. [`PrepareFuncCtx`](https://pkg.go.dev/gosalusa.com/di#PrepareFuncCtx) is the same, resolving the
 extra parameters from the provider carried by the context passed at call
 time:
 
@@ -108,8 +108,8 @@ an error, the call panics.
 
 ## Validation
 
-`DependencyProvider.Validate` checks the registered factories for missing
-dependencies and dependency cycles. `Validator` returns a `DIValidator` for a
+[`DependencyProvider.Validate`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.Validate) checks the registered factories for missing
+dependencies and dependency cycles. [`Validator`](https://pkg.go.dev/gosalusa.com/di#Validator) returns a [`DIValidator`](https://pkg.go.dev/gosalusa.com/di#DIValidator) for a
 root type that verifies every `inject` field has a registered factory:
 
 ```go

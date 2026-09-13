@@ -6,12 +6,12 @@ next: docs/database/builder
 weight: 1
 ---
 
-The `model` package defines the types and helpers for persisting and loading
+The [`model`](https://pkg.go.dev/gosalusa.com/database/model) package defines the types and helpers for persisting and loading
 database records through Go structs called models.
 
 ## Defining a model
 
-A model is a struct that embeds `BaseModel` and uses the `db` struct tag to
+A model is a struct that embeds [`BaseModel`](https://pkg.go.dev/gosalusa.com/database/model#BaseModel) and uses the `db` struct tag to
 describe its columns. The tag's first value is the column name, and the
 remaining values are flags or modifiers:
 
@@ -45,17 +45,17 @@ type Foo struct {
 
 If no `db` tag is present, the Go field name is used verbatim as the column
 name. Anonymous (embedded) structs are walked recursively, which is what lets
-mixins like `mixins.Timestamps` contribute their columns, and why `BaseModel`
-contributes nothing. Fields whose type implements `relationship.Relationship`
-are skipped during column collection and are managed separately by the builder
-package.
+mixins like [`mixins.Timestamps`](https://pkg.go.dev/gosalusa.com/database/model/mixins#Timestamps) contribute their columns, and why
+`BaseModel` contributes nothing. Fields whose type implements
+[`relationship.Relationship`](https://pkg.go.dev/gosalusa.com/database/builder#Relationship) are skipped during column collection and are
+managed separately by the builder package.
 
 The table name is the kebab of the struct name plus a trailing `s` (`Foo`
 becomes `foos`), unless the model implements `Table() string`.
 
 ## Saving models
 
-`Save` inserts a new row or updates an existing one depending on whether the
+[`Save`](https://pkg.go.dev/gosalusa.com/database/model#Save) inserts a new row or updates an existing one depending on whether the
 model has already been loaded from (or saved to) the database:
 
 ```go
@@ -63,20 +63,20 @@ foo := &Foo{Name: "test"}
 err := model.Save(tx, foo)
 ```
 
-- `Save`, `SaveContext`, `MustSave`, and `MustSaveContext` persist a single
+- [`Save`](https://pkg.go.dev/gosalusa.com/database/model#Save), [`SaveContext`](https://pkg.go.dev/gosalusa.com/database/model#SaveContext), [`MustSave`](https://pkg.go.dev/gosalusa.com/database/model#MustSave), and [`MustSaveContext`](https://pkg.go.dev/gosalusa.com/database/model#MustSaveContext) persist a single
   model.
-- `InsertMany` and `InsertManyContext` persist a slice of models in one
+- [`InsertMany`](https://pkg.go.dev/gosalusa.com/database/model#InsertMany) and [`InsertManyContext`](https://pkg.go.dev/gosalusa.com/database/model#InsertManyContext) persist a slice of models in one
   statement and populate autoincrement primary keys on the caller's copies.
 
-Hooks run around saves: a model may implement `hooks.BeforeSaver` or
-`hooks.AfterSaver`, and embedded mixins can contribute them. For example
-`mixins.Timestamps` sets `created_at` and `updated_at` before every save, and
-`mixins.SoftDelete` adds a `deleted_at` column that hides deleted rows from
+Hooks run around saves: a model may implement [`hooks.BeforeSaver`](https://pkg.go.dev/gosalusa.com/database/hooks#BeforeSaver) or
+[`hooks.AfterSaver`](https://pkg.go.dev/gosalusa.com/database/hooks#AfterSaver), and embedded mixins can contribute them. For example
+[`mixins.Timestamps`](https://pkg.go.dev/gosalusa.com/database/model/mixins#Timestamps) sets `created_at` and `updated_at` before every save, and
+[`mixins.SoftDelete`](https://pkg.go.dev/gosalusa.com/database/model/mixins#SoftDelete) adds a `deleted_at` column that hides deleted rows from
 queries and turns `Delete` into an update of `deleted_at`.
 
 ## Loading from HTTP requests
 
-`modeldi.Register[*Foo]` registers a dependency-injection provider that loads a
+[`modeldi.Register[*Foo]`](https://pkg.go.dev/gosalusa.com/database/model/modeldi#Register) registers a dependency-injection provider that loads a
 `Foo` by ID from a request. The ID is resolved from the URL query, a
 gorilla/mux path variable, or an `r.PathValue`, in that order. The generated
 template wires this up in `init` so handlers can inject the model directly:

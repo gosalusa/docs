@@ -6,12 +6,12 @@ next: docs/collections
 weight: 17
 ---
 
-The `nulls` and `optional` packages model fields that can be absent — typed
+The [`nulls`](https://pkg.go.dev/gosalusa.com/nulls) and [`optional`](https://pkg.go.dev/gosalusa.com/optional) packages model fields that can be absent — typed
 alternatives to raw pointers and to `sql.Null*`.
 
 ## nulls.Null[T]
 
-`nulls.Null[T]` wraps any type `T` with a `Valid` flag and interoperates with
+[`nulls.Null[T]`](https://pkg.go.dev/gosalusa.com/nulls#Null) wraps any type `T` with a `Valid` flag and interoperates with
 JSON, `database/sql`, and `database/sql/driver`:
 
 ```go
@@ -28,7 +28,7 @@ var _ sql.Scanner = (*Null[int])(nil)
 var _ driver.Valuer = Null[int]{}
 ```
 
-`New(v)` builds a valid value. In JSON, an invalid `Null` marshals to `null`
+[`New(v)`](https://pkg.go.dev/gosalusa.com/nulls#New) builds a valid value. In JSON, an invalid `Null` marshals to `null`
 and a JSON `null` unmarshals to an invalid instance; non-null values
 marshal/unmarshal as the wrapped type — including time values, slices, pointers,
 and structs. Through `sql`, `Scan(nil)` clears the value and `Value()` produces
@@ -44,8 +44,8 @@ type User struct {
 
 ## optional.Option[T]
 
-`optional.Option[T]` is the same idea as a plain value with a presence flag, and
-`Some(v)`/`None[T]()` build it:
+[`optional.Option[T]`](https://pkg.go.dev/gosalusa.com/optional#Option) is the same idea as a plain value with a presence flag, and
+[`Some(v)`](https://pkg.go.dev/gosalusa.com/optional#Some)/[`None[T]()`](https://pkg.go.dev/gosalusa.com/optional#None) build it:
 
 ```go
 type Option[T any] struct {

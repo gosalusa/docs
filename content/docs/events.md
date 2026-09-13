@@ -6,13 +6,13 @@ next: docs/queueing
 weight: 9
 ---
 
-The `event` package lets applications emit events and process them asynchronously
-through listeners. Events are dispatched to a pubsub topic, where an `EventService`
+The [`event`](https://pkg.go.dev/gosalusa.com/event) package lets applications emit events and process them asynchronously
+through listeners. Events are dispatched to a pubsub topic, where an [`EventService`](https://pkg.go.dev/gosalusa.com/event#EventService)
 dequeues them and runs each listener registered for the event's type.
 
 ## Defining an event
 
-An `Event` just needs a stable `Type` string and fields that gob can encode:
+An [`Event`](https://pkg.go.dev/gosalusa.com/event#Event) just needs a stable `Type` string and fields that gob can encode:
 
 ```go
 type LogEvent struct {
@@ -26,12 +26,12 @@ func (e *LogEvent) Type() event.EventType {
 
 The event type prefix is sent with the payload so the service can decode the
 right struct. Types must be registered on the listening side; an unknown type
-produces `ErrEventTypeNotFound`.
+produces [`ErrEventTypeNotFound`](https://pkg.go.dev/gosalusa.com/event#ErrEventTypeNotFound).
 
 ## Emitting events
 
-`Dispatch` is a function that enqueues an event on a pubsub topic. The
-`event.Register(ctx)` bootstrap step registers a `Dispatch` whose topic is
+[`Dispatch`](https://pkg.go.dev/gosalusa.com/event#Dispatch) is a function that enqueues an event on a pubsub topic. The
+[`event.Register(ctx)`](https://pkg.go.dev/gosalusa.com/event#Register) bootstrap step registers a `Dispatch` whose topic is
 taken from the inject tag name (`with.Topic(tag)`), so a handler injects the
 dispatch function and emits events by calling it:
 
@@ -53,7 +53,7 @@ listens to, so dispatched events are picked up by the listeners.
 ## Listening
 
 A listener is a struct with a `Handle(ctx, event)` method and optional `inject`
-fields. `NewListener[H, E]` binds a handler type to its event type:
+fields. [`NewListener[H, E]`](https://pkg.go.dev/gosalusa.com/event#NewListener) binds a handler type to its event type:
 
 ```go
 type LogJob struct {
@@ -68,7 +68,7 @@ func (l *LogJob) Handle(ctx context.Context, e *LogEvent) error {
 event.NewListener[*LogJob, *LogEvent]()
 ```
 
-The kernel runs an `EventService` built with `Service(listeners...)`:
+The kernel runs an `EventService` built with [`Service(listeners...)`](https://pkg.go.dev/gosalusa.com/event#Service):
 
 ```go
 kernel.Services(
@@ -92,8 +92,8 @@ consumer.
 
 ## Scheduling with cron
 
-The `event/cron` package provides an `Event` that carries its fire time and a
-`CronService` that dispatches events on a schedule:
+The [`event/cron`](https://pkg.go.dev/gosalusa.com/event/cron) package provides an [`Event`](https://pkg.go.dev/gosalusa.com/event/cron#Event) that carries its fire time and a
+[`CronService`](https://pkg.go.dev/gosalusa.com/event/cron#CronService) that dispatches events on a schedule:
 
 ```go
 kernel.Services(
@@ -102,9 +102,9 @@ kernel.Services(
 )
 ```
 
-`Schedule(cronSpec, event)` registers an event for a cron expression. When the
-schedule fires, the service sets the event's time with `SetTime` and dispatches
-it. A cron event embeds `cron.CronEvent` (or implements `SetTime` itself) so
+[`Schedule(cronSpec, event)`](https://pkg.go.dev/gosalusa.com/event/cron#CronService.Schedule) registers an event for a cron expression. When the
+schedule fires, the service sets the event's time with [`SetTime`](https://pkg.go.dev/gosalusa.com/event/cron#CronEvent.SetTime) and dispatches
+it. A cron event embeds [`cron.CronEvent`](https://pkg.go.dev/gosalusa.com/event/cron#CronEvent) (or implements `SetTime` itself) so
 the handler can read when it fired:
 
 ```go

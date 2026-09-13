@@ -6,7 +6,7 @@ next: docs/files
 weight: 13
 ---
 
-The `email` package sends HTML emails over SMTP and registers a `Mailer` as an
+The [`email`](https://pkg.go.dev/gosalusa.com/email) package sends HTML emails over SMTP and registers a [`Mailer`](https://pkg.go.dev/gosalusa.com/email#Mailer) as an
 injectable dependency.
 
 ## The Mailer interface
@@ -24,15 +24,15 @@ type Message struct {
 }
 ```
 
-`SMTPMailer` is the built-in implementation. `NewSMTPMailer(host, port,
-username, password, from)` dials the SMTP server with a one-minute timeout, and
-`Mail` sends a `Message` (falling back to the mailer's `from` when the message
+[`SMTPMailer`](https://pkg.go.dev/gosalusa.com/email#SMTPMailer) is the built-in implementation. [`NewSMTPMailer(host, port,
+username, password, from)`](https://pkg.go.dev/gosalusa.com/email#NewSMTPMailer) dials the SMTP server with a one-minute timeout, and
+[`Mail`](https://pkg.go.dev/gosalusa.com/email#SMTPMailer.Mail) sends a `Message` (falling back to the mailer's `from` when the message
 has none).
 
 ## Registering
 
-`Register(ctx, config)` registers a lazy singleton `Mailer` built from a
-`Config` — a type with a `Mailer() Mailer` method. `SMTPConfig` implements it
+[`Register(ctx, config)`](https://pkg.go.dev/gosalusa.com/email#Register) registers a lazy singleton `Mailer` built from a
+[`Config`](https://pkg.go.dev/gosalusa.com/email#Config) — a type with a `Mailer() Mailer` method. [`SMTPConfig`](https://pkg.go.dev/gosalusa.com/email#SMTPConfig) implements it
 from the usual fields:
 
 ```go
@@ -81,9 +81,9 @@ The auth package uses this to send verification and password-reset emails.
 
 ## Testing
 
-The `email/emailtest` subpackage provides a `TestMailer` that records sent
-messages in memory instead of dialing SMTP. `NewTestMailerConfig` plugs it into
-`email.Register` so tests can assert on `EmailsSent()`:
+The [`email/emailtest`](https://pkg.go.dev/gosalusa.com/email/emailtest) subpackage provides a [`TestMailer`](https://pkg.go.dev/gosalusa.com/email/emailtest#TestMailer) that records sent
+messages in memory instead of dialing SMTP. [`NewTestMailerConfig`](https://pkg.go.dev/gosalusa.com/email/emailtest#NewTestMailerConfig) plugs it into
+`email.Register` so tests can assert on [`EmailsSent()`](https://pkg.go.dev/gosalusa.com/email/emailtest#TestMailer.EmailsSent):
 
 ```go
 mailer := emailtest.NewTestMailer()

@@ -6,14 +6,14 @@ next: docs/openapi
 weight: 19
 ---
 
-The `jsonio` package exposes a value as an `io.Reader` (`JsonReader`) or an
-`io.Writer` (`JsonWriter`) by marshaling/unmarshaling it over an `io.Pipe`.
+The [`jsonio`](https://pkg.go.dev/gosalusa.com/jsonio) package exposes a value as an `io.Reader` ([`JsonReader`](https://pkg.go.dev/gosalusa.com/jsonio#JsonReader)) or an
+`io.Writer` ([`JsonWriter`](https://pkg.go.dev/gosalusa.com/jsonio#JsonWriter)) by marshaling/unmarshaling it over an `io.Pipe`.
 This is useful when an API wants to speak in terms of `io.Reader`/`io.Writer`
 but the payload is a typed Go value.
 
 ## Reading through a JsonReader
 
-`NewReader(v)` wraps `io.Pipe()` and encodes `v` into the pipe in the
+[`NewReader(v)`](https://pkg.go.dev/gosalusa.com/jsonio#NewReader) wraps `io.Pipe()` and encodes `v` into the pipe in the
 background. The returned `*JsonReader` is an `io.Reader` that yields the JSON
 encoding of `v`:
 
@@ -27,7 +27,7 @@ at `io.ReadAll` or upload time rather than at construction.
 
 ## Writing through a JsonWriter
 
-`NewWriter(v)` returns an `io.Writer`. Anything written to it is JSON-decoded
+[`NewWriter(v)`](https://pkg.go.dev/gosalusa.com/jsonio#NewWriter) returns an `io.Writer`. Anything written to it is JSON-decoded
 into the destination `v` when the writer is closed; decodes happen incrementally
 as bytes arrive:
 

@@ -14,7 +14,7 @@ same schema.
 ## Where migrations live
 
 Migrations live in the `migrations/` package. The package exposes a single
-`Migrations` registry through `Use()`, which is wired into the database in the
+[`Migrations`](https://pkg.go.dev/gosalusa.com/database/migrate#Migrations) registry through `Use()`, which is wired into the database in the
 kernel:
 
 ```go
@@ -53,7 +53,7 @@ func init() {
 
 ## How migrations run
 
-When the database is registered, `Migrations.Up` is invoked before the
+When the database is registered, [`Migrations.Up`](https://pkg.go.dev/gosalusa.com/database/migrate#Migrations.Up) is invoked before the
 connection is handed out. It creates a `migrations` table if it does not exist,
 reads the names of the migrations that have already run, then applies every
 pending migration in name order. Because names are prefixed with a timestamp,
@@ -64,13 +64,13 @@ rolled back and can be retried as-is.
 
 ## Anatomy of a migration
 
-A migration is a `migrate.Migration` with three fields:
+A migration is a [`migrate.Migration`](https://pkg.go.dev/gosalusa.com/database/migrate#Migration) with three fields:
 
 - `Name` — the timestamped file stem, e.g. `20240322_143359-Foo`.
 - `Up` — the operations that apply the change.
 - `Down` — the operations that reverse it.
 
-Both `Up` and `Down` are `schema.Runner`s, so any schema builder below can be
+Both `Up` and `Down` are [`schema.Runner`](https://pkg.go.dev/gosalusa.com/database/schema#Runner)s, so any schema builder below can be
 assigned directly. A typical migration creates a table in `Up` and drops it in
 `Down`:
 
@@ -93,7 +93,7 @@ func init() {
 }
 ```
 
-`GoStringer`s such as `schema.Raw` or `schema.Run` may be used for steps that
+[`GoStringer`](https://pkg.go.dev/fmt#GoStringer)s such as [`schema.Raw`](https://pkg.go.dev/gosalusa.com/database/schema#Raw) or [`schema.Run`](https://pkg.go.dev/gosalusa.com/database/schema#Run) may be used for steps that
 are not pure schema, for example a data backfill:
 
 ```go
@@ -131,9 +131,9 @@ already marked as run. If a migration has not been applied yet, you may edit it
 in place, but once it exists in any deployed environment, create a new one for
 the change.
 
-A follow-up migration uses the `schema.Table` builder to alter the existing
-table. Columns added in the callback are added, columns marked with `Change()`
-are modified in place, and `DropColumn` removes a column:
+A follow-up migration uses the [`schema.Table`](https://pkg.go.dev/gosalusa.com/database/schema#Table) builder to alter the existing
+table. Columns added in the callback are added, columns marked with [`Change()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Change)
+are modified in place, and [`DropColumn`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.DropColumn) removes a column:
 
 ```go
 migrations.Add(&migrate.Migration{
@@ -155,13 +155,13 @@ Write `Down` as a mirror image of `Up` so the change can be reversed: drop what
 
 ## Building schema
 
-Schema steps are all `Runner`s, so anything below works directly as an `Up` or
+Schema steps are all [`Runner`](https://pkg.go.dev/gosalusa.com/database/schema#Runner)s, so anything below works directly as an `Up` or
 `Down` step.
 
 ### Creating tables
 
-`Create(name, cb)` returns a `CreateTableBuilder`. Call `IfNotExists()` to skip
-creation when the table already exists, or `Temporary()` to create a temporary
+[`Create(name, cb)`](https://pkg.go.dev/gosalusa.com/database/schema#Create) returns a [`CreateTableBuilder`](https://pkg.go.dev/gosalusa.com/database/schema#CreateTableBuilder). Call [`IfNotExists()`](https://pkg.go.dev/gosalusa.com/database/schema#CreateTableBuilder.IfNotExists) to skip
+creation when the table already exists, or [`Temporary()`](https://pkg.go.dev/gosalusa.com/database/schema#CreateTableBuilder.Temporary) to create a temporary
 table:
 
 ```go
@@ -174,12 +174,12 @@ schema.Create("users", func(table *schema.Blueprint) {
 
 ### Altering tables
 
-`Table(name, cb)` returns an `UpdateTableBuilder` that changes an existing
+[`Table(name, cb)`](https://pkg.go.dev/gosalusa.com/database/schema#Table) returns an [`UpdateTableBuilder`](https://pkg.go.dev/gosalusa.com/database/schema#UpdateTableBuilder) that changes an existing
 table, as shown in [Editing migrations](#editing-migrations).
 
 ### Dropping tables
 
-`Drop(table)` removes a table and `DropIfExists(table)` removes it only if it
+[`Drop(table)`](https://pkg.go.dev/gosalusa.com/database/schema#Drop) removes a table and [`DropIfExists(table)`](https://pkg.go.dev/gosalusa.com/database/schema#DropIfExists) removes it only if it
 already exists:
 
 ```go
@@ -188,8 +188,8 @@ schema.DropIfExists("users")
 
 ### Views and raw SQL
 
-`View(name, query)` creates a database view backed by a raw SELECT statement,
-and `Raw` runs a statement with no processing:
+[`View(name, query)`](https://pkg.go.dev/gosalusa.com/database/schema#View) creates a database view backed by a raw SELECT statement,
+and [`Raw`](https://pkg.go.dev/gosalusa.com/database/schema#Raw) runs a statement with no processing:
 
 ```go
 schema.View("active_users", "SELECT * FROM users WHERE active = true")
@@ -201,38 +201,38 @@ schema.Raw("CREATE EXTENSION IF NOT EXISTS pgcrypto")
 
 | method                                        | SQL type                       |
 | --------------------------------------------- | ------------------------------ |
-| `String(name)`                                | a sized string, e.g. `VARCHAR` |
-| `Text(name)`                                  | a long text value              |
-| `Bool(name)`                                  | a boolean                      |
-| `Int`, `Int8`, `Int16`, `Int32`, `Int64`      | signed integers                |
-| `UInt`, `UInt8`, `UInt16`, `UInt32`, `UInt64` | unsigned integers              |
-| `Float`, `Float32`, `Float64`                 | floating point numbers         |
-| `JSON(name)`                                  | JSON data                      |
-| `Date(name)`                                  | a calendar date                |
-| `DateTime(name)`                              | a date and time                |
-| `Blob(name)`                                  | raw binary data                |
+| [`String(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.String)                  | a sized string, e.g. `VARCHAR` |
+| [`Text(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Text)                      | a long text value              |
+| [`Bool(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Bool)                      | a boolean                      |
+| [`Int`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Int), [`Int8`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Int8), [`Int16`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Int16), [`Int32`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Int32), [`Int64`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Int64)      | signed integers                |
+| [`UInt`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.UInt), [`UInt8`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.UInt8), [`UInt16`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.UInt16), [`UInt32`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.UInt32), [`UInt64`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.UInt64) | unsigned integers              |
+| [`Float`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Float), [`Float32`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Float32), [`Float64`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Float64)      | floating point numbers         |
+| [`JSON(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.JSON)                      | JSON data                      |
+| [`Date(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Date)                      | a calendar date                |
+| [`DateTime(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.DateTime)              | a date and time                |
+| [`Blob(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Blob)                      | raw binary data                |
 
-`OfType(datatype, name)` adds a column of an arbitrary dialect data type.
+[`OfType(datatype, name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.OfType) adds a column of an arbitrary dialect data type.
 
 ### Column modifiers
 
-Each type method returns a `ColumnBuilder` that is configured by chaining
+Each type method returns a [`ColumnBuilder`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder) that is configured by chaining
 modifiers, all of which mutate and return the builder:
 
 | modifier                       | effect                                      |
 | ------------------------------ | ------------------------------------------- |
-| `Nullable()` / `NotNullable()` | allow or forbid NULL                        |
-| `Primary()`                    | mark the column as part of the primary key  |
-| `AutoIncrement()`              | let the database assign the value on insert |
-| `Default(v)`                   | set a default value                         |
-| `DefaultCurrentTime()`         | default to the current timestamp            |
-| `Unique()`                     | add a unique constraint                     |
-| `Index()`                      | create an index on the column               |
-| `Size(s)`                      | set the string size, e.g. `VARCHAR(100)`    |
-| `After(column)`                | position the column after another (MySQL)   |
-| `Change()`                     | alter the column in place (update only)     |
+| [`Nullable()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Nullable) / [`NotNullable()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.NotNullable) | allow or forbid NULL                        |
+| [`Primary()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Primary)              | mark the column as part of the primary key  |
+| [`AutoIncrement()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.AutoIncrement)  | let the database assign the value on insert |
+| [`Default(v)`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Default)             | set a default value                         |
+| [`DefaultCurrentTime()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.DefaultCurrentTime) | default to the current timestamp            |
+| [`Unique()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Unique)                | add a unique constraint                     |
+| [`Index()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Index)                  | create an index on the column               |
+| [`Size(s)`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Size)                    | set the string size, e.g. `VARCHAR(100)`    |
+| [`After(column)`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.After)              | position the column after another (MySQL)   |
+| [`Change()`](https://pkg.go.dev/gosalusa.com/database/schema#ColumnBuilder.Change)                 | alter the column in place (update only)     |
 
-A composite primary key is declared separately with `PrimaryKey`, taking the
+A composite primary key is declared separately with [`PrimaryKey`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.PrimaryKey), taking the
 columns in order:
 
 ```go
@@ -245,8 +245,8 @@ schema.Create("memberships", func(table *schema.Blueprint) {
 
 ### Indexes
 
-`Index(name)` adds an index column by column via `AddColumn`, and optional
-`Unique()` makes it a unique index:
+[`Index(name)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.Index) adds an index column by column via [`AddColumn`](https://pkg.go.dev/gosalusa.com/database/schema#IndexBuilder.AddColumn), and optional
+[`Unique()`](https://pkg.go.dev/gosalusa.com/database/schema#IndexBuilder.Unique) makes it a unique index:
 
 ```go
 schema.Table("users", func(table *schema.Blueprint) {
@@ -256,7 +256,7 @@ schema.Table("users", func(table *schema.Blueprint) {
 
 ### Foreign keys
 
-`ForeignKey(localKey, relatedTable, relatedKey)` adds a foreign key constraint
+[`ForeignKey(localKey, relatedTable, relatedKey)`](https://pkg.go.dev/gosalusa.com/database/schema#Blueprint.ForeignKey) adds a foreign key constraint
 reference from one column to another table's column:
 
 ```go

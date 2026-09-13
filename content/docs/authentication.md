@@ -6,13 +6,13 @@ next: docs/events
 weight: 8
 ---
 
-The `auth` package adds JWT-based authentication on top of a `User` model. It
+The [`auth`](https://pkg.go.dev/gosalusa.com/auth) package adds JWT-based authentication on top of a [`User`](https://pkg.go.dev/gosalusa.com/auth#User) model. It
 ships with all the routes and handlers for user creation, login, password
 resets, email verification, and token refresh.
 
 ## Setting it up
 
-`Register[T]` registers the DI providers that resolve the current `*Claims`
+[`Register[T]`](https://pkg.go.dev/gosalusa.com/auth#Register) registers the DI providers that resolve the current [`*Claims`](https://pkg.go.dev/gosalusa.com/auth#Claims)
 and the logged-in `T` user from the request context. It is a bootstrap step in
 the generated kernel:
 
@@ -28,7 +28,7 @@ The HTTP middleware is applied in `routes.go`:
 r.Use(auth.AttachUser())
 ```
 
-`AttachUser` parses the `Authorization` header and stores the claims in the
+[`AttachUser`](https://pkg.go.dev/gosalusa.com/auth#AttachUser) parses the `Authorization` header and stores the claims in the
 request context. It is permissive — requests without a header pass through with
 no claims.
 
@@ -48,15 +48,15 @@ type User interface {
 }
 ```
 
-Two ready-made users are provided: `UsernameUser` (a `username` column) and
-`EmailVerifiedUser` (an `email` column with a `validated` flag, a `lookup_token`
-for email verification, and a `GetEmail` interface). Both embed `BaseModel`,
+Two ready-made users are provided: [`UsernameUser`](https://pkg.go.dev/gosalusa.com/auth#UsernameUser) (a `username` column) and
+[`EmailVerifiedUser`](https://pkg.go.dev/gosalusa.com/auth#EmailVerifiedUser) (an `email` column with a `validated` flag, a `lookup_token`
+for email verification, and a [`GetEmail`](https://pkg.go.dev/gosalusa.com/auth#EmailVerified) interface). Both embed [`BaseModel`](https://pkg.go.dev/gosalusa.com/database/model#BaseModel),
 use a `uuid.UUID` primary key, and salt the password hash with the user ID
 before hashing with bcrypt.
 
 ## Auth routes
 
-`RegisterRoutes` adds the auth endpoints to a router group:
+[`RegisterRoutes`](https://pkg.go.dev/gosalusa.com/auth#RegisterRoutes) adds the auth endpoints to a router group:
 
 ```go
 auth.RegisterRoutes(r, auth.NewBasicAuthController[*models.User](
@@ -77,22 +77,22 @@ This registers:
 
 | route             | handler              | purpose                                    |
 | ----------------- | -------------------- | ------------------------------------------ |
-| `POST /login`     | `Login`              | verify credentials, return access and refresh tokens |
-| `POST /user`      | `UserCreate`         | create a user and optionally send a verification email |
-| `GET /user/verify`| `VerifyEmail`        | mark the user verified from a token        |
-| `POST /user/password/forgot` | `ForgotPassword` | email a password reset token   |
-| `POST /user/password/reset`  | `ResetPassword`  | set a new password with the token |
-| `POST /login/refresh`        | `Refresh`        | mint a new access token from a refresh token |
-| `POST /user/password/change` | `ChangePassword` | change the password for the logged-in user (authed) |
+| `POST /login`     | [`Login`](https://pkg.go.dev/gosalusa.com/auth#BasicAuthController.Login) | verify credentials, return access and refresh tokens |
+| `POST /user`      | [`UserCreate`](https://pkg.go.dev/gosalusa.com/auth#BasicAuthController.UserCreate) | create a user and optionally send a verification email |
+| `GET /user/verify`| [`VerifyEmail`](https://pkg.go.dev/gosalusa.com/auth#BasicAuthController.VerifyEmail) | mark the user verified from a token        |
+| `POST /user/password/forgot` | [`ForgotPassword`](https://pkg.go.dev/gosalusa.com/auth#BasicAuthController.ForgotPassword) | email a password reset token   |
+| `POST /user/password/reset`  | [`ResetPassword`](https://pkg.go.dev/gosalusa.com/auth#BasicAuthController.ResetPassword) | set a new password with the token |
+| `POST /login/refresh`        | [`Refresh`](https://pkg.go.dev/gosalusa.com/auth#BasicAuthController.Refresh) | mint a new access token from a refresh token |
+| `POST /user/password/change` | [`ChangePassword`](https://pkg.go.dev/gosalusa.com/auth#BasicAuthController.ChangePassword) | change the password for the logged-in user (authed) |
 
 The last route is protected: `RegisterRoutes` applies `AttachUser` and
 `LoggedIn` to it.
 
 ## Middleware
 
-`LoggedIn()` rejects requests without claims with a 401 and can be scoped to a
-route. It also acts as an `openapidoc.OperationMiddleware`, tagging the
-operation as requiring the default security definition. `HasClaim(cb)` rejects
+[`LoggedIn()`](https://pkg.go.dev/gosalusa.com/auth#LoggedIn) rejects requests without claims with a 401 and can be scoped to a
+route. It also acts as an [`openapidoc.OperationMiddleware`](https://pkg.go.dev/gosalusa.com/openapidoc#OperationMiddleware), tagging the
+operation as requiring the default security definition. [`HasClaim(cb)`](https://pkg.go.dev/gosalusa.com/auth#HasClaim) rejects
 requests whose claims fail a predicate:
 
 ```go
@@ -120,11 +120,11 @@ request.Handler(func(r *Request) (*UserResponse, error) {
 })
 ```
 
-If there is no logged-in user this injection returns `Err401Unauthorized`.
+If there is no logged-in user this injection returns [`Err401Unauthorized`](https://pkg.go.dev/gosalusa.com/auth#Err401Unauthorized).
 
 ## Claims and tokens
 
-`Claims` embeds the JWT registered claims, carries a space-separated `scope`
+[`Claims`](https://pkg.go.dev/gosalusa.com/auth#Claims) embeds the JWT registered claims, carries a space-separated `scope`
 list, and is built fluently:
 
 ```go
@@ -135,10 +135,10 @@ claims := auth.NewClaims().
 	WithScopes(auth.ScopeAccess)
 ```
 
-`GenerateToken(claims)` signs a token with HS512 using the app key, and
-`Parse`/`ParseOf[T]` verify it. Set a stable key with `SetAppKey` so tokens
+[`GenerateToken(claims)`](https://pkg.go.dev/gosalusa.com/auth#GenerateToken) signs a token with HS512 using the app key, and
+[`Parse`](https://pkg.go.dev/gosalusa.com/auth#Parse)/[`ParseOf[T]`](https://pkg.go.dev/gosalusa.com/auth#ParseOf) verify it. Set a stable key with [`SetAppKey`](https://pkg.go.dev/gosalusa.com/auth#SetAppKey) so tokens
 survive restarts; without one a random key is generated and a warning logged.
 
-`ScopeAccess` and `ScopeRefresh` are the two standard scopes. Access tokens are
+[`ScopeAccess`](https://pkg.go.dev/gosalusa.com/auth#ScopeAccess) and [`ScopeRefresh`](https://pkg.go.dev/gosalusa.com/auth#ScopeRefresh) are the two standard scopes. Access tokens are
 checked for `ScopeAccess` by `AttachUser` and refresh tokens must carry
 `ScopeRefresh`.
