@@ -1,0 +1,13 @@
+[build]
+publish = "public"
+command = "hugo --gc --minify -b ${DEPLOY_PRIME_URL}"
+
+[[redirects]]
+from = "/*"
+to = "/go-get.html"
+status = 200
+force = true
+query = {go-get = "1"}
+
+[build.environment]
+HUGO_VERSION = "0.156.0"
