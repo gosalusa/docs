@@ -1,7 +1,7 @@
 ---
 title: Dependency Injection
 type: docs
-prev: docs/database/schema
+prev: docs/database/migrations
 next: docs/application
 weight: 3
 ---

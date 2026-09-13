@@ -2,7 +2,7 @@
 title: Builder
 type: docs
 prev: docs/database/models
-next: docs/database/schema
+next: docs/database/migrations
 weight: 2
 ---
 

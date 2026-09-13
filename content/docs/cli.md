@@ -83,7 +83,7 @@ The file contains empty `Up`/`Down` blocks; in the `Up` block you use the
 schema builder (e.g. `schema.Create("users", ...)`), and `Down` typically drops
 the same table. Migration names join the arguments with `_` and are prefixed
 with the current timestamp so they apply in creation order (see the
-[migrations](docs/database/builder) docs).
+[migrations](docs/database/migrations) docs).
 
 ## generate:migration
 
