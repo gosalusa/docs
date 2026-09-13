@@ -11,6 +11,8 @@ markup:
   goldmark:
     renderer:
       unsafe: true
+      # render markdown content as xhtml
+      xhtml: true
 
   # enable hextra syntax highlight
   highlight:
