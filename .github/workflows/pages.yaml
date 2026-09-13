@@ -63,7 +63,7 @@ jobs:
           packages: tidy
           version: 1.0
       - name: Convert to XHTML
-        run: tidy -asxhtml -numeric -o ./public/index.html ./public/index.html
+        run: tidy -asxhtml -numeric -o ./public/index.html ./public/index.html || [ $? -eq 1 ]
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
