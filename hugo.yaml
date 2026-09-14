@@ -6,6 +6,24 @@ module:
   imports:
     - path: github.com/imfing/hextra
 
+outputFormats:
+  MARKDOWN:
+    mediaType: text/markdown
+    baseName: index
+    isPlainText: true
+    notAlternative: true
+
+outputs:
+  home:
+    - HTML
+    - MARKDOWN
+  page:
+    - HTML
+    - MARKDOWN
+  section:
+    - HTML
+    - MARKDOWN
+
 markup:
   # allow raw html
   goldmark:
