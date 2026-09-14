@@ -1,9 +1,9 @@
 ---
 title: Events
 type: docs
-prev: docs/authentication
+prev: docs/files
 next: docs/queueing
-weight: 9
+weight: 11
 ---
 
 The [`event`](https://pkg.go.dev/gosalusa.com/event) package lets applications emit events and process them asynchronously

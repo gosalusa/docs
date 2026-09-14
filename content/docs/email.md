@@ -2,8 +2,8 @@
 title: Email
 type: docs
 prev: docs/logging
-next: docs/files
-weight: 13
+next: docs/errors
+weight: 15
 ---
 
 The [`email`](https://pkg.go.dev/gosalusa.com/email) package sends HTML emails over SMTP and registers a [`Mailer`](https://pkg.go.dev/gosalusa.com/email#Mailer) as an

@@ -3,7 +3,7 @@ title: Requests & Responses
 type: docs
 prev: docs/routing
 next: docs/views
-weight: 6
+weight: 7
 ---
 
 The [`request`](https://pkg.go.dev/gosalusa.com/request) package turns HTTP requests into typed Go structs and back into

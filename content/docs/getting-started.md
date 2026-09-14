@@ -3,6 +3,7 @@ title: Getting Started
 type: docs
 prev: /
 next: docs/database/
+weight: 1
 ---
 
 This guide creates a new Salusa project, runs its development server, and points

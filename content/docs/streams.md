@@ -3,7 +3,7 @@ title: Streams
 type: docs
 prev: docs/queueing
 next: docs/logging
-weight: 11
+weight: 13
 ---
 
 The [`stream`](https://pkg.go.dev/gosalusa.com/stream) package provides an immutable, lazy sequence abstraction for

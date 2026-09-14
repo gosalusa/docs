@@ -2,7 +2,7 @@
 title: Application & Kernel
 type: docs
 prev: docs/dependency-injection
-next: docs/routing
+next: docs/environment
 weight: 4
 ---
 

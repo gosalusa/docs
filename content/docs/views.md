@@ -3,7 +3,7 @@ title: Views
 type: docs
 prev: docs/requests
 next: docs/authentication
-weight: 7
+weight: 8
 ---
 
 The [`view`](https://pkg.go.dev/gosalusa.com/view) package renders server-side HTML from templates stored in an

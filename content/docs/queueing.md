@@ -3,7 +3,7 @@ title: Queueing
 type: docs
 prev: docs/events
 next: docs/streams
-weight: 10
+weight: 12
 ---
 
 The [`pubsub`](https://pkg.go.dev/gosalusa.com/pubsub) package defines the interfaces for message queues, and

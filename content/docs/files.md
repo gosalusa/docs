@@ -1,9 +1,9 @@
 ---
 title: Files & File Serving
 type: docs
-prev: docs/email
-next: docs/environment
-weight: 14
+prev: docs/authentication
+next: docs/events
+weight: 10
 ---
 
 The [`filesystem`](https://pkg.go.dev/gosalusa.com/filesystem) and [`fileserver`](https://pkg.go.dev/gosalusa.com/fileserver) packages provide an injectable filesystem and

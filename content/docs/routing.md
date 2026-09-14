@@ -1,9 +1,9 @@
 ---
 title: Routing
 type: docs
-prev: docs/application
+prev: docs/environment
 next: docs/requests
-weight: 5
+weight: 6
 ---
 
 The [`router`](https://pkg.go.dev/gosalusa.com/router) package provides a wrapper around gorilla/mux with Salusa

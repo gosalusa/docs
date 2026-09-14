@@ -1,9 +1,9 @@
 ---
 title: Configuration & Environment
 type: docs
-prev: docs/files
-next: docs/errors
-weight: 15
+prev: docs/application
+next: docs/routing
+weight: 5
 ---
 
 The [`env`](https://pkg.go.dev/gosalusa.com/env) package reads typed values from environment variables, and

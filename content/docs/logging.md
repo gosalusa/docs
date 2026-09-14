@@ -3,7 +3,7 @@ title: Logging
 type: docs
 prev: docs/streams
 next: docs/email
-weight: 12
+weight: 14
 ---
 
 The [`clog`](https://pkg.go.dev/gosalusa.com/clog) package wires `log/slog` into Salusa. It registers the logger as a

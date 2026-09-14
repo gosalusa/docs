@@ -2,8 +2,8 @@
 title: Authentication
 type: docs
 prev: docs/views
-next: docs/events
-weight: 8
+next: docs/files
+weight: 9
 ---
 
 The [`auth`](https://pkg.go.dev/gosalusa.com/auth) package adds JWT-based authentication on top of a [`User`](https://pkg.go.dev/gosalusa.com/auth#User) model. It

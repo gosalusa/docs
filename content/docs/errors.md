@@ -1,7 +1,7 @@
 ---
 title: Errors & Stack Traces
 type: docs
-prev: docs/environment
+prev: docs/email
 next: docs/nullable
 weight: 16
 ---
