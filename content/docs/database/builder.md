@@ -1,9 +1,9 @@
 ---
 title: Builder
 type: docs
-prev: docs/database/models
+prev: docs/database/relationships
 next: docs/database/migrations
-weight: 2
+weight: 3
 ---
 
 The [`builder`](https://pkg.go.dev/gosalusa.com/database/builder) package provides a fluent, chainable query builder for the

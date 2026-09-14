@@ -3,7 +3,7 @@ title: Migrations
 type: docs
 prev: docs/database/builder
 next: docs/dependency-injection
-weight: 3
+weight: 4
 ---
 
 Migrations are versioned schema changes: each one contains the operations that

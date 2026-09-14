@@ -2,7 +2,7 @@
 title: Models
 type: docs
 prev: docs/database/
-next: docs/database/builder
+next: docs/database/relationships
 weight: 1
 ---
 
