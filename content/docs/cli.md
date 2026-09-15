@@ -20,7 +20,7 @@ $ spice init github.com/acme/webapp
 ```
 
 The resulting tree matches the layout described in
-[Application & Kernel](docs/application): `app/`, `config/`, `routes/`,
+[Application & Kernel](/docs/application): `app/`, `config/`, `routes/`,
 `migrations/`, `resources/`, and `spice.yml`.
 
 ## dev
@@ -29,7 +29,7 @@ The resulting tree matches the layout described in
 `.go`, `.tpl`, `.tmpl`, `.html`, or `.env` file changes. Builds use the `dev`
 tag (running `go build -tags dev`), so `resources/embed_dev.go` is selected and
 template and asset changes are served straight from disk without a rebuild —
-see [Files & File Serving](docs/files).
+see [Files & File Serving](/docs/files).
 
 ```console
 $ spice dev
@@ -83,7 +83,7 @@ The file contains empty `Up`/`Down` blocks; in the `Up` block you use the
 schema builder (e.g. [`schema.Create("users", ...)`](https://pkg.go.dev/gosalusa.com/database/schema#Create)), and `Down` typically drops
 the same table. Migration names join the arguments with `_` and are prefixed
 with the current timestamp so they apply in creation order (see the
-[migrations](docs/database/migrations) docs).
+[migrations](/docs/database/migrations) docs).
 
 ## generate:migration
 

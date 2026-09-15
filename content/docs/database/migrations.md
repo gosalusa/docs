@@ -119,7 +119,7 @@ migration file holds one logical change.
 
 `spice generate:migration` (a hidden `go:generate` target) is the other way to
 produce a migration: it builds one from a model's `db` tags, keeping the
-model's table in sync with its struct. See [Models](docs/database/models) for
+model's table in sync with its struct. See [Models](/docs/database/models) for
 details.
 
 ## Editing migrations

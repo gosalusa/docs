@@ -87,12 +87,12 @@ root
 - **resources/dist** serves your frontend assets.
 
 The `app` package is also where you add long-running services; see the
-[kernel](docs/application) page.
+[kernel](/docs/application) page.
 
 ## Next steps
 
-- The core of the framework is [dependency injection](docs/dependency-injection),
+- The core of the framework is [dependency injection](/docs/dependency-injection),
   which is how data gets into your handlers.
-- Models, queries, and schema are covered in the [database](docs/database/)
+- Models, queries, and schema are covered in the [database](/docs/database/)
   section.
-- [Requests & Responses](docs/requests) shows how to build typed HTTP handlers.
+- [Requests & Responses](/docs/requests) shows how to build typed HTTP handlers.
