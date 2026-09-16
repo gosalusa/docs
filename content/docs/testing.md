@@ -37,14 +37,14 @@ and ranges; body helpers compare decoded JSON, including dotted-path lookups:
 | [`AssertStatusRange(min, max)`](https://pkg.go.dev/gosalusa.com/testing/handlertest#HttpResult.AssertStatusRange) | status within bounds      |
 | [`AssertJSON(expected)`](https://pkg.go.dev/gosalusa.com/testing/handlertest#HttpResult.AssertJSON)     | whole body equals decoded value     |
 | [`AssertJSONString(s)`](https://pkg.go.dev/gosalusa.com/testing/handlertest#HttpResult.AssertJSONString)      | whole body equals a JSON string     |
-| [`AssertJSONContains(path, v)`](https://pkg.go.dev/gosalusa.com/testing/handlertest#HttpResult.AssertJSONContains) | a nested value matches `a.b.c` |
+| [`AssertJSONContains(path, matcher)`](https://pkg.go.dev/gosalusa.com/testing/handlertest#HttpResult.AssertJSONContains) | value at `a.b.c` satisfies a [`match`](https://pkg.go.dev/gosalusa.com/testing/match) matcher |
 | [`Body()`](https://pkg.go.dev/gosalusa.com/testing/handlertest#HttpResult.Body)                   | raw response bytes            |
 
 ```go
 handlertest.New(ctx, t, h).
 	PostJSON("/users", createUserRequest{Name: "Ada"}).
 	AssertStatus(http.StatusCreated).
-	AssertJSONContains("user.email", "ada@example.com")
+	AssertJSONContains("user.email", match.Equal("ada@example.com"))
 ```
 
 ## kerneltest
@@ -61,7 +61,7 @@ func TestUserGet(t *testing.T) {
 	newKernel(t).
 		GetJSON("/api/users/1").
 		AssertStatus(http.StatusOK).
-		AssertJSONContains("name", "Ada")
+		AssertJSONContains("name", match.Equal("Ada"))
 }
 ```
 
@@ -70,9 +70,26 @@ The same fluent verbs as the builder are forwarded: `Get`, `GetJSON`, `Post`,
 Because each call bootstraps the kernel with [`Bootstrap(ctx)`](https://pkg.go.dev/gosalusa.com/kernel#Kernel.Bootstrap), providers and
 services register fresh for every test.
 
-## matches
+## match
 
-The [`matches`](https://pkg.go.dev/gosalusa.com/testing/matches) package defines [`Matcher`](https://pkg.go.dev/gosalusa.com/testing/matches#Matcher) and a small set of value matchers such
-as [`EqualTo`](https://pkg.go.dev/gosalusa.com/testing/matches#EqualTo) for deferred assertions. It is used where a matcher object is
-passed rather than a direct comparison; keep in mind the current
-implementations are early stubs intended to model the pattern.
+The [`match`](https://pkg.go.dev/gosalusa.com/testing/match) package defines the [`Matcher`](https://pkg.go.dev/gosalusa.com/testing/match#Matcher) interface used for deferred
+assertions. A matcher reports whether a value matches and, on failure, a
+description of the mismatch. Matchers compose freely:
+
+| matcher                                | effect                                   |
+| -------------------------------------- | ---------------------------------------- |
+| [`Equal(expected)`](https://pkg.go.dev/gosalusa.com/testing/match#Equal)       | value is deeply equal to `expected`      |
+| [`Same(expected)`](https://pkg.go.dev/gosalusa.com/testing/match#Same)         | value is the same pointer as `expected`  |
+| [`Len(length)`](https://pkg.go.dev/gosalusa.com/testing/match#Len)             | value has the given length               |
+| [`All(matchers...)`](https://pkg.go.dev/gosalusa.com/testing/match#All)         | satisfies every matcher                  |
+
+Assertion helpers such as [`AssertJSONContains`](https://pkg.go.dev/gosalusa.com/testing/handlertest#HttpResult.AssertJSONContains)
+take a `Matcher` instead of a raw value:
+
+```go
+handlertest.New(ctx, t, h).
+	Get("/users").
+	AssertStatusOK().
+	AssertJSONContains("users", match.Len(2)).
+	AssertJSONContains("user.name", match.All(match.Len(3), match.Equal("Ada")))
+```

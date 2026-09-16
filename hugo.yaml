@@ -60,7 +60,9 @@ menu:
 params:
   navbar:
     displayTitle: true
-    displayLogo: false
+    displayLogo: true
+    logo:
+      path: images/salusa.svg
 
   footer:
     displayCopyright: false
