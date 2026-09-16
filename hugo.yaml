@@ -39,7 +39,7 @@ markup:
 menu:
   main:
     - name: Docs
-      pageRef: /docs/getting-started
+      pageRef: /docs
       weight: 1
     - name: About
       pageRef: /about
