@@ -1,0 +1,42 @@
+# Salusa
+
+> Salusa is an open-source web framework for Go that brings together HTTP routing, dependency injection, an ORM and query builder, versioned migrations, background queues, and CLI tooling into a unified full-stack developer experience.
+
+Salusa is designed to speed up full-stack Go development by wiring together the HTTP layer, services, configuration, and dependency graph into a single cohesive framework. Its packages can also be used individually in existing Go projects when only a single component is needed.
+
+All documentation pages are available in raw Markdown format at the URLs listed below (ending in `/index.md`).
+
+## Core Documentation
+
+- [Getting Started](https://gosalusa.com/docs/getting-started/index.md): Create a new Salusa project, run the development server with live reload, and understand the project layout.
+- [Database Overview](https://gosalusa.com/docs/database/index.md): Introduction to Salusa's type-safe database layer and ORM toolkit.
+- [Database Models](https://gosalusa.com/docs/database/models/index.md): Defining Go structs mapped to database tables, column tags, primary keys, and model lifecycle hooks.
+- [Database Relationships](https://gosalusa.com/docs/database/relationships/index.md): Declaring HasOne, HasMany, and BelongsTo associations with eager loading (`With`) and existence constraints (`WhereHas`).
+- [Database Query Builder](https://gosalusa.com/docs/database/builder/index.md): Fluent SQL query builder for SELECT, INSERT, UPDATE, and DELETE operations.
+- [Database Migrations](https://gosalusa.com/docs/database/migrations/index.md): Writing, generating, and running versioned schema migrations on application startup.
+- [Dependency Injection](https://gosalusa.com/docs/dependency-injection/index.md): Core DI container (`di`), provider registration, factory resolution, and struct field injection using `inject` tags.
+- [Application & Kernel](https://gosalusa.com/docs/application/index.md): Bootstrapping the application, kernel lifecycle options, dependency validation, and long-running background services.
+- [Configuration & Environment](https://gosalusa.com/docs/environment/index.md): Reading typed configuration from environment variables via `env` and fulfilling the `salusaconfig.Config` interface.
+- [Routing](https://gosalusa.com/docs/routing/index.md): HTTP routing, middleware pipelines, URL generation, and named routes wrapping gorilla/mux.
+- [Requests & Responses](https://gosalusa.com/docs/requests/index.md): Mapping HTTP requests to strongly typed Go structs, parameter binding, and serializing typed JSON responses.
+- [Views](https://gosalusa.com/docs/views/index.md): Server-side HTML template rendering using `html/template` with route helpers and layout support.
+- [Authentication](https://gosalusa.com/docs/authentication/index.md): Drop-in JWT authentication service with registration, login, password resets, and email verification.
+- [Files & File Serving](https://gosalusa.com/docs/files/index.md): File storage abstractions and HTTP static asset serving with SPA fallback.
+- [Events](https://gosalusa.com/docs/events/index.md): Event dispatcher and asynchronous listeners executing across pub/sub topics.
+- [Queueing](https://gosalusa.com/docs/queueing/index.md): Message queue abstractions with in-memory channel and durable database-backed drivers.
+- [Streams](https://gosalusa.com/docs/streams/index.md): Chainable lazy sequences and transformation pipelines over Go `iter.Seq[T]` iterators.
+- [Logging](https://gosalusa.com/docs/logging/index.md): Structured logging with `clog` and Go standard library `log/slog`, DI integration, and context attributes.
+- [Email](https://gosalusa.com/docs/email/index.md): Sending HTML and plain-text emails via SMTP with an injectable `Mailer` interface.
+- [Errors & Stack Traces](https://gosalusa.com/docs/errors/index.md): Origin-capturing error creation with automatic stack trace preservation.
+- [Optional Values](https://gosalusa.com/docs/nullable/index.md): Absent and nullable values using `optional.Optional[T]` with JSON, SQL, and form binding support.
+- [Collections](https://gosalusa.com/docs/collections/index.md): Generic sets and maps compatible with Go iterator sequences.
+- [Caching](https://gosalusa.com/docs/caching/index.md): Key-value caching interfaces and drivers for transient data storage.
+- [JSON I/O](https://gosalusa.com/docs/json-io/index.md): Exposing Go data structures as `io.Reader` and `io.Writer` via pipes.
+- [OpenAPI & ReDoc](https://gosalusa.com/docs/openapi/index.md): Automatic OpenAPI 2.0 (Swagger) specification generation from Go types and embedded interactive ReDoc documentation UI.
+- [Testing](https://gosalusa.com/docs/testing/index.md): Fluent HTTP request and handler testing (`handlertest`), full kernel testing (`kerneltest`), and assertions with composable matchers (`match`).
+- [Spice CLI](https://gosalusa.com/docs/cli/index.md): Command-line tool for project scaffolding (`spice init`), dev server (`spice dev`), and code generation (`make:model`, `make:migration`).
+
+## Optional
+
+- [About](https://gosalusa.com/about/index.md): About Salusa and author information.
+- [Full Documentation](https://gosalusa.com/llms-full.txt): Complete concatenated documentation in a single file for single-shot LLM ingestion.

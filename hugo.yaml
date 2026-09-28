@@ -12,11 +12,17 @@ outputFormats:
     baseName: index
     isPlainText: true
     notAlternative: true
+  LLMSFULL:
+    mediaType: text/plain
+    baseName: llms-full
+    isPlainText: true
+    notAlternative: true
 
 outputs:
   home:
     - HTML
     - MARKDOWN
+    - LLMSFULL
   page:
     - HTML
     - MARKDOWN

@@ -1,0 +1,21 @@
+{{- $bar := strings.Repeat 80 "=" -}}
+# Salusa Framework Documentation
+
+> Salusa is an open-source web framework for Go.
+> This single file contains the complete documentation for offline consumption and LLM context ingestion.
+> Source: https://gosalusa.com/llms.txt
+
+{{ $docs := slice -}}
+{{- range $page := (site.GetPage "/docs").Pages.ByWeight -}}
+  {{- $docs = $docs | append $page -}}
+  {{- range $child := $page.Pages.ByWeight -}}
+    {{- $docs = $docs | append $child -}}
+  {{- end -}}
+{{- end -}}
+{{- range $doc := $docs }}
+
+{{ $bar }}
+# {{ $doc.Title }}
+
+{{ $doc.RawContent | strings.TrimSpace }}
+{{ end -}}
