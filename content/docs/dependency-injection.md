@@ -40,6 +40,45 @@ The `Register` family:
 itself and the surrounding `context.Context`. Registering the same type twice
 replaces the previous factory.
 
+## Registering directly on a provider
+
+Every function in the `Register` family also exists as a method on
+[`DependencyProvider`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider), with the same
+behavior and the same type parameters minus the leading `ctx`. This is the
+form to use when you hold a provider directly and do not want to thread a
+context through — for example when assembling a provider in a test:
+
+```go
+dp := di.NewDependencyProvider()
+dp.RegisterSingleton(func() *Config { return loadConfig() })
+dp.RegisterLazySingleton(func() (*DB, error) { return openDB() })
+dp.RegisterWith(func(ctx context.Context, tag string, deps mailerDeps) (*Mailer, error) {
+	return NewMailer(deps.Config, deps.Logger)
+})
+```
+
+| method                                                  | behavior                                                            |
+| ------------------------------------------------------- | ------------------------------------------------------------------ |
+| [`Register(factory)`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.Register)         | calls the factory on every resolve                                   |
+| [`RegisterWith[T, W](factory)`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.RegisterWith) | fills a `W` with dependencies, then calls the factory on every resolve |
+| [`RegisterSingleton(factory)`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.RegisterSingleton) | builds once at call time, returns the same value on every resolve    |
+| [`RegisterLazySingleton(factory)`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.RegisterLazySingleton) | builds at most once, on the first resolve                            |
+| [`RegisterLazySingletonWith[T, W](factory)`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.RegisterLazySingletonWith) | fills a `W` with dependencies, then builds at most once              |
+| [`RegisterValue(t, factory)`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.RegisterValue) | registers a factory for a type known only dynamically (`reflect.Type`) |
+| [`RegisterFactory(factory)`](https://pkg.go.dev/gosalusa.com/di#DependencyProvider.RegisterFactory) | registers an already-built [`Factory`](https://pkg.go.dev/gosalusa.com/di#Factory), the escape hatch the others delegate to |
+
+The package-level functions are thin wrappers that pull the provider off `ctx`
+and call the matching method, so `di.Register(ctx, f)` and
+`ctx`'s provider's `Register(f)` are equivalent.
+
+> **Note**
+> The method that accepts a prebuilt `Factory` is named `RegisterFactory`. It
+> was previously named `Register` on `*DependencyProvider`; a bare
+> `dp.Register(someFactory)` call from older code now needs to become
+> `dp.RegisterFactory(someFactory)`. Calls that passed a factory *function*
+> rather than a `Factory` never compiled against the old signature, so they are
+> unaffected.
+
 ## Resolving dependencies
 
 [`Resolve[T]`](https://pkg.go.dev/gosalusa.com/di#Resolve) builds a value of type `T` from the provider carried by `ctx`:

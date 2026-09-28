@@ -1,9 +1,9 @@
 ---
 title: JSON I/O
 type: docs
-prev: docs/collections
+prev: docs/caching
 next: docs/openapi
-weight: 19
+weight: 20
 ---
 
 The [`jsonio`](https://pkg.go.dev/gosalusa.com/jsonio) package exposes a value as an `io.Reader` ([`JsonReader`](https://pkg.go.dev/gosalusa.com/jsonio#JsonReader)) or an

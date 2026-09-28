@@ -78,11 +78,42 @@ kernel.Services(
 )
 ```
 
-The service dequeues messages from its pubsub topic in a loop and runs every
-matching handler in its own goroutine, filling each handler's inject fields
-from the dependency provider. After a handler finishes the message is
-acknowledged. Handlers that error are logged and the message is still acked, so
-the event is not redelivered.
+The service dequeues messages from its pubsub topic in a loop and dispatches each
+message to every matching handler, filling each handler's inject fields from the
+dependency provider. After a handler finishes the message is acknowledged.
+Handlers that error are logged and the message is still acked, so the event is
+not redelivered.
+
+### Handler execution
+
+By default each message is handled in its own goroutine, so a slow listener
+never holds up the dequeue loop and a backlog is worked through concurrently.
+[`Synchronous()`](https://pkg.go.dev/gosalusa.com/event#EventService.Synchronous) is a builder
+option that switches the service to handling each message inline, on the dequeue
+loop's own goroutine:
+
+```go
+kernel.Services(
+	event.Service(
+		event.NewListener[*jobs.LogJob](),
+	).Synchronous(),
+)
+```
+
+In synchronous mode the loop waits for a handler to return before pulling the
+next message, which bounds concurrency to one in-flight message. That ordering is
+what you want when the listeners must not run against each other — for example
+when they contend for a single external resource, or when the ordering of
+side effects matters. It also means one slow listener stalls the whole topic, and
+a listener that blocks forever stops the service.
+
+In either mode the message is acked once its handler returns, and a handler that
+returns an error is logged and its message is still acked.
+
+Each listener is registered per event type and is shared across every message of
+that type, so a handler is built fresh for each event and must keep its own
+per-event state on the stack or in its own fields rather than relying on a
+previous invocation's state.
 
 ## Duplicating events
 
@@ -120,3 +151,20 @@ func (l *LogJob) Handle(ctx context.Context, e *LogEvent) error {
 	return nil
 }
 ```
+
+The registered value is a template, not the event that gets dispatched. Each
+firing works on a fresh copy, so a handler can read and write the event it
+receives without disturbing a concurrent firing, and overlapping firings of the
+same schedule each carry their own fire time. Two consequences follow:
+
+- The event passed to `Schedule` must be a non-nil pointer to a struct. A
+  non-pointer value cannot have its fire time set, and the service logs
+  `failed to prepare cron event` instead of dispatching it.
+- The copy is shallow. Fields that are themselves references — a slice, a map,
+  a pointer — are shared with the registered template, so a handler that mutates
+  them should do so under its own synchronization.
+
+Because each firing is dispatched on its own goroutine, a schedule that fires
+faster than its handlers finish will run them concurrently. Use
+[`event.Service(...).Synchronous()`](https://pkg.go.dev/gosalusa.com/event#EventService.Synchronous) on the
+listening side if the handlers must not overlap.

@@ -19,13 +19,13 @@ remaining values are flags or modifiers:
 type Foo struct {
 	model.BaseModel
 
-	ID         int       `db:"id,primary,autoincrement"`
-	Name       string    `db:"name,size:100"`
-	Slug       string    `db:"slug,unique"`
-	Score      int       `db:"score,index"`
-	Note       *string   `db:"note,nullable"`
-	ComputedAt time.Time `db:"computed_at,readonly"`
-	Password   string    `db:"-"`
+	ID         int                       `db:"id,primary,autoincrement"`
+	Name       string                    `db:"name,size:100"`
+	Slug       string                    `db:"slug,unique"`
+	Score      int                       `db:"score,index"`
+	Note       optional.Optional[string] `db:"note"`
+	ComputedAt time.Time                 `db:"computed_at,readonly"`
+	Password   string                    `db:"-"`
 }
 ```
 
@@ -35,7 +35,7 @@ type Foo struct {
 | --------------- | --------------------------------------------------------------------------------------------------- |
 | `primary`       | the column is part of the primary key                                                               |
 | `autoincrement` | the primary key is populated by the database on insert                                              |
-| `nullable`      | the column may store NULL                                                                           |
+| `nullable`      | the column may store NULL (implied by a nullable field type, see below)                             |
 | `readonly`      | the column is excluded from INSERT and UPDATE statements (used for values computed by the database) |
 | `index`         | create an index on the column                                                                       |
 | `unique`        | create a unique index on the column                                                                 |
@@ -52,6 +52,58 @@ managed separately by the builder package.
 
 The table name is the kebab of the struct name plus a trailing `s` (`Foo`
 becomes `foos`), unless the model implements `Table() string`.
+
+### Nullable columns
+
+A column is nullable when the Go field type says so, so the `nullable` tag is
+only needed on a field that is neither a pointer nor an
+[`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional):
+
+| field type                  | `nullable` tag | generated column                    |
+| --------------------------- | -------------- | ----------------------------------- |
+| `string`                    | required       | `table.String("x").Nullable()`      |
+| `string`                    | omitted        | `table.String("x")`                 |
+| `*string`                   | not needed     | `table.String("x").Nullable()`      |
+| `optional.Optional[string]` | not needed     | `table.String("x").Nullable()`      |
+
+`optional.Optional[T]` is the preferred way to model a nullable column. A
+pointer field works, but it cannot tell a NULL column apart from a column
+holding the zero value of the type, and it adds a level of indirection to every
+use of the field:
+
+```go
+type Foo struct {
+	model.BaseModel
+
+	Note optional.Optional[string] `db:"note"`
+}
+
+if foo.Note.Valid {
+	// note is present
+}
+
+note := foo.Note.OrElse("") // "" whether the column is NULL or empty
+```
+
+The same `Optional` marshals to and unmarshals from JSON, so a model can be
+returned straight from a handler and still send `null` for a NULL column
+instead of flattening it to a zero value. See
+[Optional Values](/docs/nullable) for the rest of the API.
+
+[`optional.OfNull`](https://pkg.go.dev/gosalusa.com/optional#OfNull) converts a
+pointer into an `Optional`, mapping `nil` to an invalid one, which is handy when
+a value arrives as a pointer from somewhere else:
+
+```go
+// a request that uses a pointer to tell an absent field from an empty one
+type createFooRequest struct {
+	Note *string `json:"note"`
+}
+
+foo := &Foo{
+	Note: optional.OfNull(r.Note), // a nil pointer becomes an invalid Optional
+}
+```
 
 ## Saving models
 

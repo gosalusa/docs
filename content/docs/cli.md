@@ -2,7 +2,7 @@
 title: Spice CLI
 type: docs
 prev: docs/testing
-weight: 22
+weight: 23
 ---
 
 `spice` is the command-line companion to Salusa. It scaffolds new applications,

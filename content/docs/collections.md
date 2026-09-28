@@ -2,7 +2,7 @@
 title: Maps & Sets
 type: docs
 prev: docs/nullable
-next: docs/json-io
+next: docs/caching
 weight: 18
 ---
 

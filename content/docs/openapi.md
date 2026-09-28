@@ -3,7 +3,7 @@ title: OpenAPI & ReDoc
 type: docs
 prev: docs/json-io
 next: docs/testing
-weight: 20
+weight: 21
 ---
 
 The [`openapidoc`](https://pkg.go.dev/gosalusa.com/openapidoc) package generates an OpenAPI (Swagger) 2.0 document from your

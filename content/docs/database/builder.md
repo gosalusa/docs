@@ -108,6 +108,29 @@ posts, err := builder.From[Post]().
 [`Unordered`](https://pkg.go.dev/gosalusa.com/database/builder#Builder.Unordered) removes all ordering. [`Limit`](https://pkg.go.dev/gosalusa.com/database/builder#Builder.Limit) caps the number of rows and [`Offset`](https://pkg.go.dev/gosalusa.com/database/builder#Builder.Offset)
 skips rows, which together implement pagination.
 
+[`OrderBy`](https://pkg.go.dev/gosalusa.com/database/builder#Builder.OrderBy) and [`OrderByDesc`](https://pkg.go.dev/gosalusa.com/database/builder#Builder.OrderByDesc) take a column name and
+run it through the dialect's identifier quoting, which quotes each dot-separated
+segment separately — so a join alias qualifies a column just as well as a bare
+one. When the sort expression is not a column at all — a function call, a
+`CASE` expression — use
+[`OrderByRaw(raw)`](https://pkg.go.dev/gosalusa.com/database/builder#Builder.OrderByRaw) to emit the
+expression verbatim:
+
+```go
+builder.From[Post]().
+	OrderBy("posts.published_at").
+	OrderByRaw("LENGTH(title) DESC")
+```
+
+Raw fragments are interpolated as written and are not escaped, so never build
+one from user input.
+
+`ModelBuilder` exposes the same three methods, forwarding to the underlying
+`Builder`:
+[`ModelBuilder.OrderBy`](https://pkg.go.dev/gosalusa.com/database/builder#ModelBuilder.OrderBy),
+[`ModelBuilder.OrderByDesc`](https://pkg.go.dev/gosalusa.com/database/builder#ModelBuilder.OrderByDesc), and
+[`ModelBuilder.OrderByRaw`](https://pkg.go.dev/gosalusa.com/database/builder#ModelBuilder.OrderByRaw).
+
 ### Locking rows
 
 [`ForUpdate`](https://pkg.go.dev/gosalusa.com/database/builder#Builder.ForUpdate) adds `FOR UPDATE` to the query, locking the selected rows until the

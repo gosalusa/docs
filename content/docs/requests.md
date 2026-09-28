@@ -51,6 +51,10 @@ logic; JSON bodies are decoded with `encoding/json`, where a pointer field
 requested as `null` stays `nil`. A field of type `fs.File` is populated from a
 `multipart/form-data` upload with a matching `json` tag.
 
+A field of type [`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional)
+distinguishes a parameter that was not sent from one that was sent as a blank
+value, as described in [Optional Values](/docs/nullable).
+
 Fields with an `inject` tag are filled from the dependency provider. A model
 field marked `inject:"id"` is loaded by its primary key from the route or
 query, as described in the models and DI pages.
