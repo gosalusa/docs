@@ -11,7 +11,7 @@ used individually in existing projects when you only need one piece.
 ## Explore
 
 {{< cards >}}
-{{< card link="docs/getting-started" title="Docs" icon="book-open" >}}
+{{< card link="docs" title="Docs" icon="book-open" >}}
 {{< card link="about" title="About" icon="user" >}}
 {{< /cards >}}
 
@@ -27,4 +27,3 @@ Some of the most important parts of the framework:
 {{< card link="docs/authentication" title="Authentication" subtitle="Drop-in JWT auth with login, signup, password resets, and email verification" icon="lock-closed" >}}
 {{< card link="docs/dependency-injection" title="Dependency Injection" subtitle="The core container that resolves dependencies via inject tags" icon="beaker" >}}
 {{< /cards >}}
-
