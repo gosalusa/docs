@@ -28,7 +28,7 @@ All documentation pages are available in raw Markdown format at the URLs listed 
 - [Logging](https://gosalusa.com/docs/logging/index.md): Structured logging with `clog` and Go standard library `log/slog`, DI integration, and context attributes.
 - [Email](https://gosalusa.com/docs/email/index.md): Sending HTML and plain-text emails via SMTP with an injectable `Mailer` interface.
 - [Errors & Stack Traces](https://gosalusa.com/docs/errors/index.md): Origin-capturing error creation with automatic stack trace preservation.
-- [Optional Values](https://gosalusa.com/docs/nullable/index.md): Absent and nullable values using `optional.Optional[T]`, with JSON, SQL, and form binding support.
+- [Optional Values](https://gosalusa.com/docs/nullable/index.md): Absent and nullable values using `optional.Optional[T]` with JSON, SQL, and form binding support.
 - [Collections](https://gosalusa.com/docs/collections/index.md): Generic sets and maps compatible with Go iterator sequences.
 - [Caching](https://gosalusa.com/docs/caching/index.md): Key-value caching interfaces and drivers for transient data storage.
 - [JSON I/O](https://gosalusa.com/docs/json-io/index.md): Exposing Go data structures as `io.Reader` and `io.Writer` via pipes.
