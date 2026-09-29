@@ -194,6 +194,55 @@ created := optional.Some(user.CreatedAt).Map(func(t time.Time) string {
 })
 ```
 
+## nulls.Null[T]
+
+The [`nulls/v2`](https://pkg.go.dev/gosalusa.com/nulls/v2) package is a smaller
+alternative for values that only need JSON and SQL support. It is imported at a
+`/v2` path, and its package name is still `nulls`:
+
+```go
+import "gosalusa.com/nulls/v2"
+```
+
+[`nulls.Null[T]`](https://pkg.go.dev/gosalusa.com/nulls/v2#Null) is defined over
+`sql.Null[T]` in the same way `optional.Optional[T]` is, so the two convert
+directly and share the same zero-value-means-absent rule:
+
+```go
+type Null[T any] sql.Null[T]
+
+type User struct {
+	ID        int64            `db:"id"`
+	AvatarURL nulls.Null[string] `db:"avatar_url"`
+}
+
+n := nulls.Null[int]{V: 21, Valid: true}
+```
+
+There is no constructor, so set `V` and `Valid` on the struct literal. JSON
+behaves as it does for an `Optional`: an invalid value marshals to `null`, a
+JSON `null` unmarshals to an invalid value holding the zero value of `T`, and
+anything else round-trips as the wrapped type.
+
+What `Null[T]` does not have is everything `optional.Optional[T]` adds on top:
+no `Some` or `None`, no `OrElse`, no `Map`, and no
+`MarshalText`/`UnmarshalText`, so it does not bind from a blank query or form
+parameter. Reach for `optional.Optional[T]` when a field is read back out of a
+request, and for `nulls.Null[T]` when it is only marshalled to JSON or stored
+in a nullable column.
+
+One difference in the method set matters at the call site. `MarshalJSON` is on
+the value type, but `Value` is on the pointer, so a `Null[T]` does not satisfy
+[`driver.Valuer`](https://pkg.go.dev/database/sql/driver#Valuer) on its own —
+pass a pointer when using one as a query argument:
+
+```go
+avatar := nulls.Null[string]{V: "a.png", Valid: true}
+db.ExecContext(ctx, "UPDATE users SET avatar_url = $1 WHERE id = $2", &avatar, id)
+// &avatar  ->  stores 'a.png'
+// &nulls.Null[string]{}  ->  stores NULL
+```
+
 ## Import
 
 ```go
