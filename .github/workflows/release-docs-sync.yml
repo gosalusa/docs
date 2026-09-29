@@ -1,0 +1,317 @@
+name: Release docs sync
+
+# Called by gosalusa/framework when a release is published, via
+# repository_dispatch. See gosalusa/framework/.github/workflows/notify-docs.yml.
+on:
+  repository_dispatch:
+    types: [release-published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Framework tag to document (e.g. v0.29.0)
+        required: true
+        type: string
+      previous_tag:
+        description: Tag to diff from (defaults to the previous tag reachable from `tag`)
+        required: false
+        type: string
+      model:
+        description: opencode model in provider/model form
+        required: false
+        default: opencode/claude-sonnet-4-5
+        type: string
+
+concurrency:
+  group: release-docs-${{ github.event.client_payload.tag || inputs.tag }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  FRAMEWORK_REPO: gosalusa/framework
+  HUGO_VERSION: "0.156.0"
+  RELEASE_TAG: ${{ github.event.client_payload.tag || inputs.tag }}
+  PREVIOUS_TAG: ${{ github.event.client_payload.previous_tag || inputs.previous_tag }}
+  MODEL: ${{ github.event.client_payload.model || inputs.model || 'opencode/claude-sonnet-4-5' }}
+
+jobs:
+  sync:
+    name: Update docs for ${{ github.event.client_payload.tag || inputs.tag }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout docs
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: true
+
+      - name: Checkout framework at ${{ env.RELEASE_TAG }}
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ env.FRAMEWORK_REPO }}
+          ref: ${{ env.RELEASE_TAG }}
+          path: framework
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve previous tag
+        id: prev
+        working-directory: framework
+        run: |
+          set -euo pipefail
+          git rev-parse --verify --quiet "refs/tags/${RELEASE_TAG}" >/dev/null \
+            || { echo "::error::tag ${RELEASE_TAG} not found in ${FRAMEWORK_REPO}"; exit 1; }
+
+          if [ -n "${PREVIOUS_TAG:-}" ]; then
+            prev="${PREVIOUS_TAG}"
+          else
+            prev="$(git describe --tags --abbrev=0 "${RELEASE_TAG}^" 2>/dev/null || true)"
+          fi
+
+          if [ -z "${prev}" ] || [ "${prev}" = "${RELEASE_TAG}" ]; then
+            # No earlier tag: diff against the empty tree so a first release still works.
+            echo "prev=" >> "$GITHUB_OUTPUT"
+            echo "::notice::no previous tag found; diffing ${RELEASE_TAG} against the empty tree"
+          else
+            echo "prev=${prev}" >> "$GITHUB_OUTPUT"
+            echo "diffing ${prev}..${RELEASE_TAG}"
+          fi
+
+      - name: Build release notes
+        working-directory: framework
+        env:
+          PREV: ${{ steps.prev.outputs.prev }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          set -euo pipefail
+          if [ -n "${PREV}" ]; then
+            range="${PREV}..${RELEASE_TAG}"
+            empty=""
+          else
+            range="${RELEASE_TAG}"
+            empty="$(git hash-object -t tree /dev/null)"
+          fi
+
+          # Docs-relevant surface only: drop tests, internals, snapshots, CI, generated cover data.
+          pathspec=(
+            ':(exclude)*_test.go'
+            ':(exclude)internal/**'
+            ':(exclude)*/.snapshots/**'
+            ':(exclude).github/**'
+            ':(exclude)docs/**'
+            ':(exclude)cover.out'
+            ':(exclude)go.sum'
+            ':(exclude)go.mod'
+          )
+
+          {
+            echo "# Framework release ${RELEASE_TAG}"
+            echo
+            if [ -n "${PREV}" ]; then
+              echo "Range: \`${PREV}..${RELEASE_TAG}\`"
+            else
+              echo "Range: first release (\`${RELEASE_TAG}\` vs empty tree)"
+            fi
+            echo "Repository: https://github.com/${FRAMEWORK_REPO}"
+            echo
+            echo "## Commits"
+            echo
+            git log --no-merges --pretty='- %h %s' "${range}"
+            echo
+            echo "## Diffstat"
+            echo
+            if [ -n "${empty}" ]; then
+              git diff --stat "${empty}" "${RELEASE_TAG}" -- "${pathspec[@]}"
+            else
+              git diff --stat "${range}" -- "${pathspec[@]}"
+            fi
+            echo
+            echo "## Diff"
+            echo
+            if [ -n "${empty}" ]; then
+              git diff "${empty}" "${RELEASE_TAG}" -- "${pathspec[@]}"
+            else
+              git diff "${range}" -- "${pathspec[@]}"
+            fi
+          } > "${NOTES_FILE}"
+
+          size=$(wc -c < "${NOTES_FILE}")
+          echo "release notes: ${size} bytes"
+          if [ "${size}" -gt 400000 ]; then
+            head -c 400000 "${NOTES_FILE}" > "${NOTES_FILE}.trimmed"
+            mv "${NOTES_FILE}.trimmed" "${NOTES_FILE}"
+            {
+              echo
+              echo "NOTE: the diff above was truncated at 400000 bytes."
+              echo "Read the full source under ./framework in the working tree for the rest."
+            } >> "${NOTES_FILE}"
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: Set up Hugo extended
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
+
+      - name: Install opencode
+        run: |
+          set -euo pipefail
+          curl -fsSL https://opencode.ai/install | bash
+          echo "$HOME/.opencode/bin" >> "$GITHUB_PATH"
+
+      - name: Run opencode
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_DISABLE_AUTOUPDATE: "true"
+          OPENCODE_DISABLE_DEFAULT_PLUGINS: "true"
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+          REPORT_FILE: ${{ runner.temp }}/release-report.md
+          # Last matching rule wins, so the catch-all comes first. The agent may
+          # only write docs content and the report; it can never commit, push,
+          # open PRs, or read the environment (which holds the API key).
+          # Explicit denies are enforced even under --auto.
+          OPENCODE_PERMISSION: >-
+            {"edit":{"*":"deny","content/**":"allow","static/llms.txt":"allow","${{ runner.temp }}/**":"allow"},"bash":{"*":"allow","rm *":"deny","git push*":"deny","git commit*":"deny","git reset*":"deny","gh pr *":"deny","gh issue *":"deny","env":"deny","printenv*":"deny","curl*":"deny","wget*":"deny"},"webfetch":"allow","question":"deny","task":{"*":"deny"},"external_directory":{"${{ runner.temp }}/**":"allow"}}
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.opencode/bin:$PATH"
+
+          mkdir -p "$(dirname "${REPORT_FILE}")"
+          {
+            echo "# Task preamble"
+            echo
+            echo "- Framework repository: https://github.com/${FRAMEWORK_REPO}"
+            echo "- Release tag: \`${RELEASE_TAG}\`"
+            echo "- Release URL: https://github.com/${FRAMEWORK_REPO}/releases/tag/${RELEASE_TAG}"
+            echo "- Framework source (read-only reference): \`./framework\` in this working tree"
+            echo "- Release notes / diff: the attached file \`release-notes.md\`"
+            echo "- Report file to write: \`${REPORT_FILE}\` (overwrite it)"
+            echo
+          } > "${RUNNER_TEMP}/prompt.md"
+          cat .github/release-docs-prompt.md >> "${RUNNER_TEMP}/prompt.md"
+
+          opencode run \
+            --auto \
+            --model "${MODEL}" \
+            --file "${NOTES_FILE}" \
+            "$(cat "${RUNNER_TEMP}/prompt.md")" 2>&1 | tee "${RUNNER_TEMP}/opencode.log" || {
+            status=$?
+            echo "::warning::opencode exited ${status}; continuing so any partial edits are still reviewed"
+            echo "opencode exited with status ${status}" >> "${RUNNER_TEMP}/opencode.log"
+          }
+
+          if [ ! -s "${REPORT_FILE}" ]; then
+            {
+              echo "## opencode did not write a report"
+              echo
+              echo '```'
+              tail -c 6000 "${RUNNER_TEMP}/opencode.log"
+              echo '```'
+            } > "${REPORT_FILE}"
+          fi
+
+      - name: Keep the framework checkout out of the commit
+        run: |
+          set -euo pipefail
+          printf 'framework/\n' >> .git/info/exclude
+          git status --porcelain
+
+      - name: Verify the site still builds
+        id: build
+        run: |
+          set -uo pipefail
+          if hugo --gc --minify --logLevel warn 2>&1 | tee "${RUNNER_TEMP}/hugo.log"; then
+            echo "result=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+            echo "::warning::hugo build failed - the pull request will be opened anyway so the changes can be reviewed"
+          fi
+
+      - name: Check for changes
+        id: changes
+        run: |
+          set -euo pipefail
+          files="$(git status --porcelain -- content static)"
+          if [ -z "${files}" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No documentation changes were needed for ${RELEASE_TAG}."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "${files}"
+          fi
+
+      - name: Open pull request
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESOLVED_PREV: ${{ steps.prev.outputs.prev }}
+          BUILD_RESULT: ${{ steps.build.outputs.result }}
+          REPORT_FILE: ${{ runner.temp }}/release-report.md
+        run: |
+          set -euo pipefail
+          branch="docs/${RELEASE_TAG}"
+
+          if [ -n "${RESOLVED_PREV}" ]; then
+            compare_url="https://github.com/${FRAMEWORK_REPO}/compare/${RESOLVED_PREV}...${RELEASE_TAG}"
+          else
+            compare_url="https://github.com/${FRAMEWORK_REPO}/releases/tag/${RELEASE_TAG} (first documented release)"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # -C so a re-run of the workflow resets an existing docs/<tag> branch.
+          git switch -C "${branch}"
+          git add -- content static
+          git commit -m "docs: update for framework ${RELEASE_TAG}" -m "$(cat "${REPORT_FILE}")"
+          git push --force origin "HEAD:refs/heads/${branch}"
+
+          {
+            echo "Automated docs update for [\`${RELEASE_TAG}\`](https://github.com/${FRAMEWORK_REPO}/releases/tag/${RELEASE_TAG}) in [\`${FRAMEWORK_REPO}\`](https://github.com/${FRAMEWORK_REPO})."
+            echo
+            cat "${REPORT_FILE}"
+            echo
+            echo "---"
+            echo
+            echo "Framework diff: ${compare_url}"
+            echo
+            if [ "${BUILD_RESULT}" = "ok" ]; then
+              echo "Build: \`hugo --gc --minify\` passed."
+            else
+              echo "Build: \`hugo --gc --minify\` **failed**. Fix this before merging."
+              echo
+              echo "<details><summary>hugo output</summary>"
+              echo
+              echo '```'
+              tail -c 4000 "${RUNNER_TEMP}/hugo.log" || true
+              echo '```'
+              echo
+              echo "</details>"
+            fi
+            echo
+            echo "Opened by [opencode](https://opencode.ai) in \`release-docs-sync\`."
+          } > "${RUNNER_TEMP}/pr-body.md"
+
+          args=(
+            --base main
+            --head "${branch}"
+            --title "docs: update for framework ${RELEASE_TAG}"
+            --body-file "${RUNNER_TEMP}/pr-body.md"
+          )
+          if gh label list --limit 200 --json name --jq '.[].name' | grep -qx documentation; then
+            args+=(--label documentation)
+          fi
+          gh pr create "${args[@]}"
+
+      - name: Fail the run on a broken build
+        if: steps.changes.outputs.changed == 'true' && steps.build.outputs.result == 'failed'
+        run: |
+          echo "::error::hugo build failed after opencode ran; the pull request was still opened for review"
+          exit 1

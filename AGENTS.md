@@ -25,3 +25,23 @@ Salusa docs site. Hugo static site using the **Hextra** theme (pulled in as a Go
 ## Branches / deploy
 
 - Default branch is `main`; deploy is via Netlify (branch for "edit this page" links).
+
+## Release docs sync
+
+`.github/workflows/release-docs-sync.yml` keeps the docs in step with framework releases. It is triggered by a `repository_dispatch` of type `release-published` from `gosalusa/framework` (see that repo's `.github/workflows/notify-docs.yml`) or by hand via `workflow_dispatch`.
+
+What it does:
+
+1. Checks out the framework repo at the released tag and diffs it against the previous tag, excluding tests, `internal/`, snapshots and CI config. The diff goes into `release-notes.md`.
+2. Runs `opencode run --auto` in this repo with `.github/release-docs-prompt.md` as the instructions and the diff attached. The agent edits only `content/` and `static/llms.txt` and writes a report to `$RUNNER_TEMP/release-report.md`.
+3. Builds with `hugo --gc --minify`, then opens a PR from `docs/<tag>` with the report as the body.
+
+Editing `.github/release-docs-prompt.md` changes the agent's behaviour — it is the place to add rules about tone, new sections, or what counts as a user-facing change.
+
+**Edit the prompt, not the workflow**, for behavioural changes; the workflow only wires up inputs, permissions, and the PR.
+
+### Setup
+
+- Secret `OPENCODE_API_KEY` in this repo (from <https://opencode.ai/auth>, provider "OpenCode Zen"). The workflow default model is `opencode/claude-sonnet-4-5`; override it with the `model` input.
+- Secret `DOCS_DISPATCH_TOKEN` in **framework** — a token with `repo` scope on `gosalusa/docs`, so the framework repo can fire `repository_dispatch`.
+- Without a change under `content/` or `static/` the workflow opens no PR and says so in the log.
