@@ -35,6 +35,7 @@ All documentation pages are available in raw Markdown format at the URLs listed 
 - [OpenAPI & ReDoc](https://gosalusa.com/docs/openapi/index.md): Automatic OpenAPI 2.0 (Swagger) specification generation from Go types and embedded interactive ReDoc documentation UI.
 - [Testing](https://gosalusa.com/docs/testing/index.md): Fluent HTTP request and handler testing (`handlertest`), full kernel testing (`kerneltest`), and assertions with composable matchers (`match`).
 - [Spice CLI](https://gosalusa.com/docs/cli/index.md): Command-line tool for project scaffolding (`spice init`), dev server (`spice dev`), and code generation (`make:model`, `make:migration`).
+- [Release Notes](https://gosalusa.com/docs/release-notes/index.md): User-facing changes in each Salusa framework release, newest first.
 
 ## Optional
 

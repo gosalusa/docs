@@ -2,6 +2,7 @@
 title: Spice CLI
 type: docs
 prev: docs/testing
+next: docs/release-notes
 weight: 23
 ---
 

@@ -31,9 +31,31 @@ may be truncated if the diff was very large.
      affects users,
    - add a new page (with frontmatter and `prev`/`next` links) when a change
      introduces a genuinely new topic rather than a detail of an existing one.
-4. Update `static/llms.txt` if you added, removed, or retitled a page. Each
-   entry links to `https://gosalusa.com/docs/<path>/index.md` and carries a
-   one-line description.
+4. Record the release on the release notes page, `content/docs/release-notes.md`.
+
+   Keep it as a single running page, newest release first, one `##` section per
+   tag in the form `## v0.29.0 - 2026-01-31`, where the date is the release date
+   from the framework repo (`git -C framework log -1 --format=%cs <tag>`). If
+   you cannot determine the date, use the tag alone and say so in the report.
+
+   Each section holds a short paragraph of prose plus bullets for the
+   user-facing changes from step 2, newest release's section inserted directly
+   after the page's opening paragraph, above any existing sections. Cover added,
+   changed, and removed API, and put anything requiring action under a
+   `### Breaking changes` subheading with a one-line migration step. Group by
+   topic (for example `### Database`, `### HTTP`) only when a release has more
+   than a handful of changes. Link new identifiers to their godoc and the
+   section to the framework release URL. Skip empty sections, and if a release
+   genuinely has nothing user facing, do not add a section for it.
+
+   Never rewrite the text of an existing release's section; it is a historical
+   record. If the tag already has a section, update that section in place
+   instead of adding a duplicate.
+
+5. Update `static/llms.txt` if you added, removed, or retitled a page, including
+   the release notes page. Each entry links to
+   `https://gosalusa.com/docs/<path>/index.md` and carries a one-line
+   description.
 
 ## House style
 
