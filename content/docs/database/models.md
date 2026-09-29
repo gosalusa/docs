@@ -78,7 +78,7 @@ type Foo struct {
 	Note optional.Optional[string] `db:"note"`
 }
 
-if foo.Note.Valid {
+if foo.Note.Valid() {
 	// note is present
 }
 

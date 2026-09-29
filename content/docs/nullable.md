@@ -11,12 +11,17 @@ raw pointers and to the single field types in `database/sql`.
 
 ## optional.Optional[T]
 
-[`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional) wraps any type `T` with a `Valid` flag and
+[`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional) wraps any type `T` with a validity flag and
 interoperates with JSON, `database/sql`, and `database/sql/driver`:
 
 ```go
-type Optional[T any] sql.Null[T]
+type Optional[T any] struct {
+	// has unexported fields
+}
 ```
+
+The wrapped value is private, so an `Optional` is built and read through the
+package's functions and methods rather than through its fields.
 
 The zero value is already an invalid `Optional`, so a struct field needs no
 initialization to mean "absent". Build a valid one with
@@ -43,13 +48,25 @@ name := optional.Some("Salusa").OrElse("unknown") // "Salusa"
 age := optional.Optional[int]{}.OrElse(0)         // 0
 ```
 
-`Valid` can also be branched on directly when the valid and absent cases need
-different code:
+[`Valid()`](https://pkg.go.dev/gosalusa.com/optional#Optional.Valid) reports
+whether the value is present, which is what you branch on when the valid and
+absent cases need different code:
 
 ```go
-if avatar.Valid {
+if avatar.Valid() {
 	// ...
 }
+```
+
+[`Ok()`](https://pkg.go.dev/gosalusa.com/optional#Optional.Ok) returns the
+wrapped value and a bool in one step, for when you need both without a branch:
+
+```go
+avatar, ok := user.AvatarURL.Ok()
+if !ok {
+	return errors.New("avatar is required")
+}
+saveAvatar(user, avatar)
 ```
 
 ### JSON
@@ -67,8 +84,8 @@ type User struct {
 ```
 
 ```go
-// optional.Optional[string]{} marshals to: null
-// optional.Optional[string]{V: "a.png", Valid: true} marshals to: "a.png"
+// optional.None[string]() marshals to: null
+// optional.Some("a.png")  marshals to: "a.png"
 ```
 
 A JSON decoding error leaves the value valid and the wrapped value partially
@@ -97,16 +114,8 @@ becomes SQL `NULL`:
 
 ```go
 db.ExecContext(ctx, "UPDATE users SET avatar_url = $1 WHERE id = $2", avatar, id)
-// avatar == optional.Optional[string]{V: "a.png", Valid: true}  ->  stores 'a.png'
-// avatar == optional.Optional[string]{}                          ->  stores NULL
-```
-
-`Optional[T]` is declared as a defined type over `sql.Null[T]`, so the two
-convert directly when you need to hand a value to code that expects the
-standard library type:
-
-```go
-var std sql.Null[string] = sql.Null[string](avatar)
+// avatar == optional.Some("a.png")  ->  stores 'a.png'
+// avatar == optional.None[string]() ->  stores NULL
 ```
 
 ### Text
@@ -192,6 +201,43 @@ Because the wrapped type can change, `Map` is also the way to convert an
 created := optional.Some(user.CreatedAt).Map(func(t time.Time) string {
 	return t.Format("2006-01-02")
 })
+```
+
+### Lazy fallbacks
+
+[`Or(fn)`](https://pkg.go.dev/gosalusa.com/optional#Optional.Or) resolves a
+fallback that is only built when the value is absent. A valid `Optional` is
+returned unchanged and `fn` is never called, so an expensive default costs
+nothing on the common path:
+
+```go
+nickname := user.Nickname.Or(func() optional.Optional[string] {
+	return optional.Some(displayNameFor(user))
+})
+```
+
+This is the `Optional[T]`-shaped counterpart of `OrElse`: `OrElse` takes an
+eagerly built value, `Or` takes a function.
+
+### Iteration
+
+[`All()`](https://pkg.go.dev/gosalusa.com/optional#Optional.All) returns an
+[`iter.Seq[T]`](https://pkg.go.dev/iter#Seq) over the wrapped value — one value
+for a valid `Optional`, nothing for an invalid one:
+
+```go
+for name := range user.Nickname.All() {
+	fmt.Println(name)
+}
+```
+
+Because it is a plain iterator sequence, it composes with `range`-over-func
+and with the [`stream`](https://pkg.go.dev/gosalusa.com/stream) package
+described in [Streams](/docs/streams):
+
+```go
+parts := stream.New(user.Nickname.All()).Slice()
+// parts is a zero- or one-element slice
 ```
 
 ## Import
