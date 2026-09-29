@@ -9,6 +9,16 @@ weight: 17
 The [`optional`](https://pkg.go.dev/gosalusa.com/optional) package models values that can be absent — a typed alternative to
 raw pointers and to the single field types in `database/sql`.
 
+> **Note**
+> `nulls.Null[T]` was removed in v0.28.0 in favour of
+> [`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional),
+> which marshals to JSON and scans from SQL the same way and adds `OrElse`,
+> `Map`, and the text marshalling that binds a query parameter. The earlier
+> `optional.Option[T]`, whose fields were `Value` and `Valid` and whose
+> marshalling methods panicked, was replaced by `Optional[T]` over
+> `sql.Null[T]`: the `Value` field is now `V`, and the marshalling methods are
+> implemented.
+
 ## optional.Optional[T]
 
 [`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional) wraps any type `T` with a `Valid` flag and
@@ -35,6 +45,15 @@ its own type: `optional.Some(0)` and `optional.Some("")` are both valid, not
 absent. Only the zero value of `Optional` itself — or a JSON `null` on the way
 in — means absent.
 
+[`OfNull(n)`](https://pkg.go.dev/gosalusa.com/optional#OfNull) is the
+pointer-flavoured constructor: a non-nil `*T` becomes a valid `Optional` holding
+the pointed-to value, and `nil` becomes an invalid one. That is what you want
+for a helper whose `*T` return already means "absent":
+
+```go
+nickname := optional.OfNull(findNickname(id)) // invalid when findNickname returns nil
+```
+
 Read the wrapped value with [`OrElse(fallback)`](https://pkg.go.dev/gosalusa.com/optional#Optional.OrElse), which returns the
 value when it is valid and the fallback when it is not:
 
@@ -42,6 +61,16 @@ value when it is valid and the fallback when it is not:
 name := optional.Some("Salusa").OrElse("unknown") // "Salusa"
 age := optional.Optional[int]{}.OrElse(0)         // 0
 ```
+
+[`Ok()`](https://pkg.go.dev/gosalusa.com/optional#Optional.Ok) returns the value
+and whether it is valid, for when both are needed at once:
+
+```go
+age, ok := user.Age.Ok()
+```
+
+For an invalid `Optional`, `Ok` returns the zero value of `T` alongside `false`,
+so check `ok` before using the value.
 
 `Valid` can also be branched on directly when the valid and absent cases need
 different code:
@@ -193,6 +222,19 @@ created := optional.Some(user.CreatedAt).Map(func(t time.Time) string {
 	return t.Format("2006-01-02")
 })
 ```
+
+[`IfPresent(fn)`](https://pkg.go.dev/gosalusa.com/optional#Optional.IfPresent) calls
+`fn` with the wrapped value only when it is valid, which saves the
+`if avatar.Valid` guard around a side effect such as a log line or an append:
+
+```go
+user.Nickname.IfPresent(func(nickname string) {
+	logger.Info("nickname", "value", nickname)
+})
+```
+
+`IfPresent` returns nothing, so use it for side effects only — `Map` or
+`OrElse` when you need a result.
 
 ## Import
 
