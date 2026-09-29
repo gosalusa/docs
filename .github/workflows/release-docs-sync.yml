@@ -18,7 +18,7 @@ on:
       model:
         description: opencode model in provider/model form
         required: false
-        default: opencode/claude-sonnet-4-5
+        default: opencode/big-pickle
         type: string
 
 concurrency:
@@ -34,7 +34,7 @@ env:
   HUGO_VERSION: "0.156.0"
   RELEASE_TAG: ${{ github.event.client_payload.tag || inputs.tag }}
   PREVIOUS_TAG: ${{ github.event.client_payload.previous_tag || inputs.previous_tag }}
-  MODEL: ${{ github.event.client_payload.model || inputs.model || 'opencode/claude-sonnet-4-5' }}
+  MODEL: ${{ github.event.client_payload.model || inputs.model || 'opencode/big-pickle' }}
 
 jobs:
   sync:
@@ -197,11 +197,14 @@ jobs:
           } > "${RUNNER_TEMP}/prompt.md"
           cat .github/release-docs-prompt.md >> "${RUNNER_TEMP}/prompt.md"
 
+          # Fail loudly here rather than letting opencode report a missing file.
+          [ -s "${NOTES_FILE}" ] || { echo "::error::${NOTES_FILE} is missing or empty"; exit 1; }
+
           opencode run \
             --auto \
             --model "${MODEL}" \
-            --file "${NOTES_FILE}" \
-            "$(cat "${RUNNER_TEMP}/prompt.md")" 2>&1 | tee "${RUNNER_TEMP}/opencode.log" || {
+            "$(cat "${RUNNER_TEMP}/prompt.md")" \
+            --file "${NOTES_FILE}" 2>&1 | tee "${RUNNER_TEMP}/opencode.log" || {
             status=$?
             echo "::warning::opencode exited ${status}; continuing so any partial edits are still reviewed"
             echo "opencode exited with status ${status}" >> "${RUNNER_TEMP}/opencode.log"
