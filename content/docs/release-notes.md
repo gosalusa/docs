@@ -10,6 +10,75 @@ identifiers link to their documentation on
 [pkg.go.dev](https://pkg.go.dev/gosalusa.com); each section links to the
 framework release itself.
 
+## v0.30.0 - 2026-10-09
+
+The `optional` package is renamed to `option`, the local filesystem moves out of
+`filesystem` into a new `wfs` package that can write as well as read, and the DI
+container gains a declarative way to declare and validate a dependency. Release:
+[v0.30.0](https://github.com/gosalusa/framework/releases/tag/v0.30.0).
+
+### Option package
+
+- The `optional` package is renamed to
+  [`option`](https://pkg.go.dev/gosalusa.com/option) and
+  [`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional) to
+  [`option.Option[T]`](https://pkg.go.dev/gosalusa.com/option#Option). See
+  [Option Values](/docs/nullable).
+- New [`Option.FlatMap[U]`](https://pkg.go.dev/gosalusa.com/option#Option.FlatMap)
+  applies a function that itself returns an `Option[U]`, so the result is not
+  nested.
+
+### Files
+
+- New [`wfs`](https://pkg.go.dev/gosalusa.com/wfs) package. It keeps the
+  injectable `fs.FS` from `filesystem` and adds optional writes through
+  [`WriteFileFS`](https://pkg.go.dev/gosalusa.com/wfs#WriteFileFS),
+  [`OpenFileFS`](https://pkg.go.dev/gosalusa.com/wfs#OpenFileFS),
+  [`MkdirFS`](https://pkg.go.dev/gosalusa.com/wfs#MkdirFS),
+  [`RemoveFS`](https://pkg.go.dev/gosalusa.com/wfs#RemoveFS), and
+  [`RenameFS`](https://pkg.go.dev/gosalusa.com/wfs#RenameFS), with matching
+  package-level helpers. See [Files & File Serving](/docs/files).
+- The generated template stores `Config.FileSystem` as a plain path `string` and
+  registers it with
+  [`wfs.RegisterLocal`](https://pkg.go.dev/gosalusa.com/wfs#RegisterLocal).
+
+### Dependency injection
+
+- New [`di.Uses[T]`](https://pkg.go.dev/gosalusa.com/di#Uses). Embed it to give a
+  struct a `Validate(ctx)` method that checks every `inject` field of `T`.
+- New [`di.ValidatorFor[T](ctx)`](https://pkg.go.dev/gosalusa.com/di#ValidatorFor),
+  the generic form of `di.Validator`. See
+  [Dependency Injection](/docs/dependency-injection).
+
+### HTTP
+
+- [`Router.Validate`](https://pkg.go.dev/gosalusa.com/router#Router.Validate)
+  now validates route-level middleware that implements
+  [`validate.Validator`](https://pkg.go.dev/gosalusa.com/validate#Validator), in
+  addition to handlers.
+- [`Route.Middleware`](https://pkg.go.dev/gosalusa.com/router#Route.Middleware)
+  now installs the wrapped handler on the underlying route, so per-route
+  middleware added after registration runs at request time. See
+  [Routing](/docs/routing).
+
+### Database
+
+- [`mixins.SoftDelete`](https://pkg.go.dev/gosalusa.com/database/model/mixins#SoftDelete)
+  now stores `DeletedAt` as an
+  [`option.Option[time.Time]`](https://pkg.go.dev/gosalusa.com/option#Option)
+  rather than a `*time.Time`.
+
+### Breaking changes
+
+- The `optional` package is renamed to `option`. Replace
+  `import "gosalusa.com/optional"` with `import "gosalusa.com/option"` and
+  `optional.Optional[T]` with `option.Option[T]`.
+- The `filesystem` package is removed. Replace `filesystem.Register(ctx, cfg)`
+  with `wfs.RegisterLocal(ctx, path)`, and drop `filesystem.Config` for a plain
+  path `string`.
+- `mixins.SoftDelete.DeletedAt` is now an `option.Option[time.Time]` rather than
+  a `*time.Time`. Use `DeletedAt.Valid()` where a nil check was used.
+
 ## v0.29.0 - 2026-09-29
 
 `optional.Optional[T]` is now a struct with an unexported

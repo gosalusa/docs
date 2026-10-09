@@ -155,4 +155,19 @@ root type that verifies every `inject` field has a registered factory:
 err := dp.Validate(ctx)
 ```
 
+[`ValidatorFor[T](ctx)`](https://pkg.go.dev/gosalusa.com/di#ValidatorFor) is the
+generic form of `Validator`, returning a `DIValidator` for the type `T`.
+
+A type can declare and validate its own dependencies by embedding
+[`di.Uses[T]`](https://pkg.go.dev/gosalusa.com/di#Uses). Embedding the zero-size
+`Uses[T]` gives the struct a `Validate(ctx)` method that reports every `inject`
+field of `T` that has no registered factory, so a handler can be validated
+without a central list:
+
+```go
+type Bar struct {
+	di.Uses[*Foo]
+}
+```
+
 The kernel calls this on startup so a misconfigured provider fails fast.

@@ -19,13 +19,13 @@ remaining values are flags or modifiers:
 type Foo struct {
 	model.BaseModel
 
-	ID         int                       `db:"id,primary,autoincrement"`
-	Name       string                    `db:"name,size:100"`
-	Slug       string                    `db:"slug,unique"`
-	Score      int                       `db:"score,index"`
-	Note       optional.Optional[string] `db:"note"`
-	ComputedAt time.Time                 `db:"computed_at,readonly"`
-	Password   string                    `db:"-"`
+	ID         int                   `db:"id,primary,autoincrement"`
+	Name       string                `db:"name,size:100"`
+	Slug       string                `db:"slug,unique"`
+	Score      int                   `db:"score,index"`
+	Note       option.Option[string] `db:"note"`
+	ComputedAt time.Time             `db:"computed_at,readonly"`
+	Password   string                `db:"-"`
 }
 ```
 
@@ -57,16 +57,16 @@ becomes `foos`), unless the model implements `Table() string`.
 
 A column is nullable when the Go field type says so, so the `nullable` tag is
 only needed on a field that is neither a pointer nor an
-[`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional):
+[`option.Option[T]`](https://pkg.go.dev/gosalusa.com/option#Option):
 
 | field type                  | `nullable` tag | generated column                    |
 | --------------------------- | -------------- | ----------------------------------- |
 | `string`                    | required       | `table.String("x").Nullable()`      |
 | `string`                    | omitted        | `table.String("x")`                 |
 | `*string`                   | not needed     | `table.String("x").Nullable()`      |
-| `optional.Optional[string]` | not needed     | `table.String("x").Nullable()`      |
+| `option.Option[string]`     | not needed     | `table.String("x").Nullable()`      |
 
-`optional.Optional[T]` is the preferred way to model a nullable column. A
+`option.Option[T]` is the preferred way to model a nullable column. A
 pointer field works, but it cannot tell a NULL column apart from a column
 holding the zero value of the type, and it adds a level of indirection to every
 use of the field:
@@ -75,7 +75,7 @@ use of the field:
 type Foo struct {
 	model.BaseModel
 
-	Note optional.Optional[string] `db:"note"`
+	Note option.Option[string] `db:"note"`
 }
 
 if foo.Note.Valid() {
@@ -85,13 +85,13 @@ if foo.Note.Valid() {
 note := foo.Note.OrElse("") // "" whether the column is NULL or empty
 ```
 
-The same `Optional` marshals to and unmarshals from JSON, so a model can be
+The same `Option` marshals to and unmarshals from JSON, so a model can be
 returned straight from a handler and still send `null` for a NULL column
 instead of flattening it to a zero value. See
-[Optional Values](/docs/nullable) for the rest of the API.
+[Option Values](/docs/nullable) for the rest of the API.
 
-[`optional.OfNull`](https://pkg.go.dev/gosalusa.com/optional#OfNull) converts a
-pointer into an `Optional`, mapping `nil` to an invalid one, which is handy when
+[`option.OfNull`](https://pkg.go.dev/gosalusa.com/option#OfNull) converts a
+pointer into an `Option`, mapping `nil` to an invalid one, which is handy when
 a value arrives as a pointer from somewhere else:
 
 ```go
@@ -101,7 +101,7 @@ type createFooRequest struct {
 }
 
 foo := &Foo{
-	Note: optional.OfNull(r.Note), // a nil pointer becomes an invalid Optional
+	Note: option.OfNull(r.Note), // a nil pointer becomes an invalid Option
 }
 ```
 
@@ -124,7 +124,9 @@ Hooks run around saves: a model may implement [`hooks.BeforeSaver`](https://pkg.
 [`hooks.AfterSaver`](https://pkg.go.dev/gosalusa.com/database/hooks#AfterSaver), and embedded mixins can contribute them. For example
 [`mixins.Timestamps`](https://pkg.go.dev/gosalusa.com/database/model/mixins#Timestamps) sets `created_at` and `updated_at` before every save, and
 [`mixins.SoftDelete`](https://pkg.go.dev/gosalusa.com/database/model/mixins#SoftDelete) adds a `deleted_at` column that hides deleted rows from
-queries and turns `Delete` into an update of `deleted_at`.
+queries and turns `Delete` into an update of `deleted_at`. Its `DeletedAt`
+field is an [`option.Option[time.Time]`](https://pkg.go.dev/gosalusa.com/option#Option),
+so an unset `deleted_at` reads as an invalid `Option`.
 
 ## Loading from HTTP requests
 

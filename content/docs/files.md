@@ -6,25 +6,35 @@ next: docs/events
 weight: 10
 ---
 
-The [`filesystem`](https://pkg.go.dev/gosalusa.com/filesystem) and [`fileserver`](https://pkg.go.dev/gosalusa.com/fileserver) packages provide an injectable filesystem and
-an HTTP handler for serving files with an SPA-style fallback.
+The [`wfs`](https://pkg.go.dev/gosalusa.com/wfs) package provides an injectable
+filesystem that can be read from and written to, and the
+[`fileserver`](https://pkg.go.dev/gosalusa.com/fileserver) package serves files
+over HTTP with an SPA-style fallback.
+
+> **Note**
+> In v0.30.0 the `filesystem` package was removed. Registering a filesystem
+> moved to [`wfs.RegisterLocal`](https://pkg.go.dev/gosalusa.com/wfs#RegisterLocal),
+> and the config field that used to hold a `filesystem.Config` is now a plain
+> directory path `string`.
 
 ## Registering a filesystem
 
-[`filesystem.Register(ctx, cfg)`](https://pkg.go.dev/gosalusa.com/filesystem#Register) registers a lazy singleton `fs.FS` built from a
-[`Config`](https://pkg.go.dev/gosalusa.com/filesystem#Config) — a type with `FS() fs.FS`. [`NewLocalFS(root)`](https://pkg.go.dev/gosalusa.com/filesystem#NewLocalFS) builds a config from a
-directory path. The generated template uses it for user-uploaded files:
+[`wfs.RegisterLocal(ctx, path)`](https://pkg.go.dev/gosalusa.com/wfs#RegisterLocal)
+registers a lazy singleton `fs.FS` rooted at a directory path, and
+[`wfs.NewLocalFS(root)`](https://pkg.go.dev/gosalusa.com/wfs#NewLocalFS) builds
+the filesystem value directly. The generated template uses it for
+user-uploaded files:
 
 ```go
 kernel.Register(func(ctx context.Context, c *config.Config) {
-	filesystem.Register(ctx, c.FileSystem)
+	wfs.RegisterLocal(ctx, c.FileSystem)
 })
 ```
 
-The `Config.FileSystem` field is wired in `config.go`:
+The `Config.FileSystem` field is a plain path, wired in `config.go`:
 
 ```go
-FileSystem: filesystem.NewLocalFS("./files"),
+FileSystem: "./files",
 ```
 
 Inside a handler, inject `fs.FS` and use it like any Go filesystem:
@@ -39,6 +49,44 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// ...
 }
 ```
+
+## Reading and writing
+
+`fs.FS` is read-only. `wfs` layers optional write operations on top of it
+through small interfaces, and the package-level functions dispatch to whichever
+one the filesystem implements:
+
+| interface                                                       | method                                   |
+| --------------------------------------------------------------- | ---------------------------------------- |
+| [`WriteFileFS`](https://pkg.go.dev/gosalusa.com/wfs#WriteFileFS) | `WriteFile(name string, b []byte) error` |
+| [`OpenFileFS`](https://pkg.go.dev/gosalusa.com/wfs#OpenFileFS)   | `OpenFile(name string, flag int) (File, error)` |
+| [`MkdirFS`](https://pkg.go.dev/gosalusa.com/wfs#MkdirFS)         | `Mkdir(name string) error`               |
+| [`RemoveFS`](https://pkg.go.dev/gosalusa.com/wfs#RemoveFS)       | `Remove(name string) error`              |
+| [`RenameFS`](https://pkg.go.dev/gosalusa.com/wfs#RenameFS)       | `Rename(oldname, newname string) error`  |
+
+Call the matching [`wfs.WriteFile`](https://pkg.go.dev/gosalusa.com/wfs#WriteFile),
+[`wfs.OpenFile`](https://pkg.go.dev/gosalusa.com/wfs#OpenFile),
+[`wfs.Mkdir`](https://pkg.go.dev/gosalusa.com/wfs#Mkdir),
+[`wfs.Remove`](https://pkg.go.dev/gosalusa.com/wfs#Remove), or
+[`wfs.Rename`](https://pkg.go.dev/gosalusa.com/wfs#Rename) function rather than
+asserting the interface yourself. A filesystem that does not support the
+operation returns an error wrapping
+[`wfs.ErrNotImplemented`](https://pkg.go.dev/gosalusa.com/wfs#ErrNotImplemented):
+
+```go
+fsys := wfs.NewLocalFS("./files")
+err := wfs.WriteFile(fsys, "report.txt", []byte("done"))
+```
+
+[`wfs.NewLocalFS`](https://pkg.go.dev/gosalusa.com/wfs#NewLocalFS) returns a
+[`*LocalFS`](https://pkg.go.dev/gosalusa.com/wfs#LocalFS) that implements every
+interface above, plus the standard `Open`, `Stat`, `ReadFile`, `ReadDir`, and
+`ReadLink` reads. [`OpenFile`](https://pkg.go.dev/gosalusa.com/wfs#OpenFile)
+takes the same `os` flags through the [`wfs.O_*`](https://pkg.go.dev/gosalusa.com/wfs#O_RDONLY)
+constants — `O_RDONLY`, `O_WRONLY`, `O_RDWR`, `O_APPEND`, `O_CREATE`, `O_EXCL`,
+`O_SYNC`, and `O_TRUNC` — and returns a
+[`wfs.File`](https://pkg.go.dev/gosalusa.com/wfs#File), an `fs.File` that is
+also an `io.Writer`.
 
 ## Serving static files with SPA fallback
 
