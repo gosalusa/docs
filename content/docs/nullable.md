@@ -9,11 +9,6 @@ weight: 17
 The [`option`](https://pkg.go.dev/gosalusa.com/option) package models values that can be absent — a typed alternative to
 raw pointers and to the single field types in `database/sql`.
 
-> **Note**
-> In v0.30.0 the `optional` package was renamed to `option` and
-> `optional.Optional[T]` became `option.Option[T]`. Update the import path and
-> the identifiers; the API is otherwise unchanged.
-
 ## option.Option[T]
 
 [`option.Option[T]`](https://pkg.go.dev/gosalusa.com/option#Option) wraps any type `T` with a validity flag and

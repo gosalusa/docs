@@ -11,12 +11,6 @@ filesystem that can be read from and written to, and the
 [`fileserver`](https://pkg.go.dev/gosalusa.com/fileserver) package serves files
 over HTTP with an SPA-style fallback.
 
-> **Note**
-> In v0.30.0 the `filesystem` package was removed. Registering a filesystem
-> moved to [`wfs.RegisterLocal`](https://pkg.go.dev/gosalusa.com/wfs#RegisterLocal),
-> and the config field that used to hold a `filesystem.Config` is now a plain
-> directory path `string`.
-
 ## Registering a filesystem
 
 [`wfs.RegisterLocal(ctx, path)`](https://pkg.go.dev/gosalusa.com/wfs#RegisterLocal)
@@ -56,13 +50,13 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 through small interfaces, and the package-level functions dispatch to whichever
 one the filesystem implements:
 
-| interface                                                       | method                                   |
-| --------------------------------------------------------------- | ---------------------------------------- |
-| [`WriteFileFS`](https://pkg.go.dev/gosalusa.com/wfs#WriteFileFS) | `WriteFile(name string, b []byte) error` |
+| interface                                                        | method                                          |
+| ---------------------------------------------------------------- | ----------------------------------------------- |
+| [`WriteFileFS`](https://pkg.go.dev/gosalusa.com/wfs#WriteFileFS) | `WriteFile(name string, b []byte) error`        |
 | [`OpenFileFS`](https://pkg.go.dev/gosalusa.com/wfs#OpenFileFS)   | `OpenFile(name string, flag int) (File, error)` |
-| [`MkdirFS`](https://pkg.go.dev/gosalusa.com/wfs#MkdirFS)         | `Mkdir(name string) error`               |
-| [`RemoveFS`](https://pkg.go.dev/gosalusa.com/wfs#RemoveFS)       | `Remove(name string) error`              |
-| [`RenameFS`](https://pkg.go.dev/gosalusa.com/wfs#RenameFS)       | `Rename(oldname, newname string) error`  |
+| [`MkdirFS`](https://pkg.go.dev/gosalusa.com/wfs#MkdirFS)         | `Mkdir(name string) error`                      |
+| [`RemoveFS`](https://pkg.go.dev/gosalusa.com/wfs#RemoveFS)       | `Remove(name string) error`                     |
+| [`RenameFS`](https://pkg.go.dev/gosalusa.com/wfs#RenameFS)       | `Rename(oldname, newname string) error`         |
 
 Call the matching [`wfs.WriteFile`](https://pkg.go.dev/gosalusa.com/wfs#WriteFile),
 [`wfs.OpenFile`](https://pkg.go.dev/gosalusa.com/wfs#OpenFile),
