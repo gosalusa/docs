@@ -1,54 +1,54 @@
 ---
-title: Optional Values
+title: Option Values
 type: docs
 prev: docs/errors
 next: docs/collections
 weight: 17
 ---
 
-The [`optional`](https://pkg.go.dev/gosalusa.com/optional) package models values that can be absent — a typed alternative to
+The [`option`](https://pkg.go.dev/gosalusa.com/option) package models values that can be absent — a typed alternative to
 raw pointers and to the single field types in `database/sql`.
 
-## optional.Optional[T]
+## option.Option[T]
 
-[`optional.Optional[T]`](https://pkg.go.dev/gosalusa.com/optional#Optional) wraps any type `T` with a validity flag and
+[`option.Option[T]`](https://pkg.go.dev/gosalusa.com/option#Option) wraps any type `T` with a validity flag and
 interoperates with JSON, `database/sql`, and `database/sql/driver`:
 
 ```go
-type Optional[T any] struct {
+type Option[T any] struct {
 	// has unexported fields
 }
 ```
 
-The wrapped value is private, so an `Optional` is built and read through the
+The wrapped value is private, so an `Option` is built and read through the
 package's functions and methods rather than through its fields.
 
-The zero value is already an invalid `Optional`, so a struct field needs no
+The zero value is already an invalid `Option`, so a struct field needs no
 initialization to mean "absent". Build a valid one with
-[`Some(v)`](https://pkg.go.dev/gosalusa.com/optional#Some), or an explicitly empty
-one with [`None[T]()`](https://pkg.go.dev/gosalusa.com/optional#None):
+[`Some(v)`](https://pkg.go.dev/gosalusa.com/option#Some), or an explicitly empty
+one with [`None[T]()`](https://pkg.go.dev/gosalusa.com/option#None):
 
 ```go
-avatar := optional.Some("https://example.com/a.png")
-missing := optional.None[string]()
+avatar := option.Some("https://example.com/a.png")
+missing := option.None[string]()
 // equivalent to
-missing := optional.Optional[string]{}
+missing := option.Option[string]{}
 ```
 
 `Some` marks the value present even when what it is given is the zero value of
-its own type: `optional.Some(0)` and `optional.Some("")` are both valid, not
-absent. Only the zero value of `Optional` itself — or a JSON `null` on the way
+its own type: `option.Some(0)` and `option.Some("")` are both valid, not
+absent. Only the zero value of `Option` itself — or a JSON `null` on the way
 in — means absent.
 
-Read the wrapped value with [`OrElse(fallback)`](https://pkg.go.dev/gosalusa.com/optional#Optional.OrElse), which returns the
+Read the wrapped value with [`OrElse(fallback)`](https://pkg.go.dev/gosalusa.com/option#Option.OrElse), which returns the
 value when it is valid and the fallback when it is not:
 
 ```go
-name := optional.Some("Salusa").OrElse("unknown") // "Salusa"
-age := optional.Optional[int]{}.OrElse(0)         // 0
+name := option.Some("Salusa").OrElse("unknown") // "Salusa"
+age := option.Option[int]{}.OrElse(0)         // 0
 ```
 
-[`Valid()`](https://pkg.go.dev/gosalusa.com/optional#Optional.Valid) reports
+[`Valid()`](https://pkg.go.dev/gosalusa.com/option#Option.Valid) reports
 whether the value is present, which is what you branch on when the valid and
 absent cases need different code:
 
@@ -58,7 +58,7 @@ if avatar.Valid() {
 }
 ```
 
-[`Ok()`](https://pkg.go.dev/gosalusa.com/optional#Optional.Ok) returns the
+[`Ok()`](https://pkg.go.dev/gosalusa.com/option#Option.Ok) returns the
 wrapped value and a bool in one step, for when you need both without a branch:
 
 ```go
@@ -71,25 +71,25 @@ saveAvatar(user, avatar)
 
 ### JSON
 
-An invalid `Optional` marshals to `null`, and a JSON `null` unmarshals to an
+An invalid `Option` marshals to `null`, and a JSON `null` unmarshals to an
 invalid instance holding the zero value of `T`. Anything else marshals and
 unmarshals as the wrapped type, so time values, slices, pointers, and structs
 all round-trip without a custom `MarshalJSON`:
 
 ```go
 type User struct {
-	ID        int64                   `db:"id"`
-	AvatarURL optional.Optional[string] `db:"avatar_url"`
+	ID        int64                 `db:"id"`
+	AvatarURL option.Option[string] `db:"avatar_url"`
 }
 ```
 
 ```go
-// optional.None[string]() marshals to: null
-// optional.Some("a.png")  marshals to: "a.png"
+// option.None[string]() marshals to: null
+// option.Some("a.png")  marshals to: "a.png"
 ```
 
 A JSON decoding error leaves the value valid and the wrapped value partially
-decoded, so an `Optional` reused across decodes should be reset to its zero
+decoded, so an `Option` reused across decodes should be reset to its zero
 value first.
 
 ### SQL
@@ -98,47 +98,47 @@ Through `database/sql`, `Scan(nil)` clears the value and marks it invalid, and
 `Value()` produces `nil` for an invalid instance. Nullable columns therefore
 round-trip through a model with no special handling on either side.
 
-`Optional[T]` implements the interfaces on both the value and the pointer,
+`Option[T]` implements the interfaces on both the value and the pointer,
 matching what the standard library does for `sql.Null[T]`:
 
 ```go
-var _ json.Marshaler = Optional[int]{}    // value
-var _ json.Unmarshaler = (*Optional[int])(nil)
-var _ sql.Scanner = (*Optional[int])(nil) // pointer: database/sql takes the address of a field
-var _ driver.Valuer = Optional[int]{}     // value: usable directly as a query argument
+var _ json.Marshaler = Option[int]{}    // value
+var _ json.Unmarshaler = (*Option[int])(nil)
+var _ sql.Scanner = (*Option[int])(nil) // pointer: database/sql takes the address of a field
+var _ driver.Valuer = Option[int]{}     // value: usable directly as a query argument
 ```
 
-Because `Value()` is on the value type, an `Optional` can be handed to
+Because `Value()` is on the value type, an `Option` can be handed to
 `database/sql` as an argument with no pointer and no unwrapping — an invalid one
 becomes SQL `NULL`:
 
 ```go
 db.ExecContext(ctx, "UPDATE users SET avatar_url = $1 WHERE id = $2", avatar, id)
-// avatar == optional.Some("a.png")  ->  stores 'a.png'
-// avatar == optional.None[string]() ->  stores NULL
+// avatar == option.Some("a.png")  ->  stores 'a.png'
+// avatar == option.None[string]() ->  stores NULL
 ```
 
 ### Text
 
-[`MarshalText`](https://pkg.go.dev/gosalusa.com/optional#Optional.MarshalText) and
-[`UnmarshalText`](https://pkg.go.dev/gosalusa.com/optional#Optional.UnmarshalText) implement
+[`MarshalText`](https://pkg.go.dev/gosalusa.com/option#Option.MarshalText) and
+[`UnmarshalText`](https://pkg.go.dev/gosalusa.com/option#Option.UnmarshalText) implement
 [`encoding.TextMarshaler`](https://pkg.go.dev/encoding#TextMarshaler) and
 [`encoding.TextUnmarshaler`](https://pkg.go.dev/encoding#TextUnmarshaler). An invalid
-`Optional` marshals to empty text, and empty text unmarshals to an invalid
-`Optional` rather than to the zero value of `T`.
+`Option` marshals to empty text, and empty text unmarshals to an invalid
+`Option` rather than to the zero value of `T`.
 
-That is what makes an `Optional` bind cleanly from a missing or blank query
+That is what makes an `Option` bind cleanly from a missing or blank query
 parameter, which is how `request` decodes `query`, `path`, and form fields:
 
 ```go
 type ListUsersRequest struct {
-	AvatarURL optional.Optional[string] `query:"avatar_url"`
-	Age       optional.Optional[int]    `query:"age"`
+	AvatarURL option.Option[string] `query:"avatar_url"`
+	Age       option.Option[int]    `query:"age"`
 }
 
-// GET /users?age=21      -> Age == optional.Some(21)
-// GET /users             -> Age == optional.None[int]()
-// GET /users?age=        -> Age == optional.None[int]()
+// GET /users?age=21      -> Age == option.Some(21)
+// GET /users             -> Age == option.None[int]()
+// GET /users?age=        -> Age == option.None[int]()
 ```
 
 Values that implement `encoding.TextMarshaler` use their own text encoding, a
@@ -148,13 +148,13 @@ wrapped struct is written as JSON, and must be read back as JSON.
 
 ### Migrations
 
-Migration generation recognises an `Optional[T]` field through
-[`Unwrap`](https://pkg.go.dev/gosalusa.com/optional#Unwrap), which returns the
+Migration generation recognises an `Option[T]` field through
+[`Unwrap`](https://pkg.go.dev/gosalusa.com/option#Unwrap), which returns the
 wrapped type for a `reflect.Type` and reports whether the type is an
-`Optional`:
+`Option`:
 
 ```go
-wrapped, ok := optional.Unwrap(reflect.TypeFor[optional.Optional[string]]())
+wrapped, ok := option.Unwrap(reflect.TypeFor[option.Option[string]]())
 // wrapped == reflect.TypeFor[string](), ok == true
 ```
 
@@ -163,8 +163,8 @@ alongside the field type:
 
 ```go
 type User struct {
-	Nickname  string                    `db:"nickname"`
-	AvatarURL optional.Optional[string] `db:"avatar_url"`
+	Nickname  string                `db:"nickname"`
+	AvatarURL option.Option[string] `db:"avatar_url"`
 }
 ```
 
@@ -177,53 +177,65 @@ table.String("avatar_url").Nullable()
 
 ### Mapping
 
-[`Map[U](fn)`](https://pkg.go.dev/gosalusa.com/optional#Optional.Map) applies `fn` to the
-wrapped value and returns the result as a valid `Optional[U]`. An invalid
-`Optional` comes back invalid and `fn` is never called, so the function does not
+[`Map[U](fn)`](https://pkg.go.dev/gosalusa.com/option#Option.Map) applies `fn` to the
+wrapped value and returns the result as a valid `Option[U]`. An invalid
+`Option` comes back invalid and `fn` is never called, so the function does not
 have to handle the zero value of `T`:
 
 ```go
-age := optional.Some(21).Map(func(age int) string {
+age := option.Some(21).Map(func(age int) string {
 	return fmt.Sprintf("%d years old", age)
 })
-// age == optional.Some("21 years old")
+// age == option.Some("21 years old")
 
-missing := optional.Optional[int]{}.Map(func(int) string {
+missing := option.Option[int]{}.Map(func(int) string {
 	return "never mapped"
 })
-// missing == optional.None[string]()
+// missing == option.None[string]()
 ```
 
 Because the wrapped type can change, `Map` is also the way to convert an
-`Optional` to a different type in one step:
+`Option` to a different type in one step:
 
 ```go
-created := optional.Some(user.CreatedAt).Map(func(t time.Time) string {
+created := option.Some(user.CreatedAt).Map(func(t time.Time) string {
 	return t.Format("2006-01-02")
 })
 ```
 
+[`FlatMap[U](fn)`](https://pkg.go.dev/gosalusa.com/option#Option.FlatMap) is
+`Map` for a function that itself returns an `Option`, so the result is not
+wrapped a second time. An invalid `Option` comes back invalid and `fn` is never
+called:
+
+```go
+nickname := option.Some(userID).FlatMap(func(id int64) option.Option[string] {
+	return lookupNickname(id)
+})
+// nickname is the Option returned by lookupNickname, not Option[Option[string]]
+```
+
 ### Lazy fallbacks
 
-[`Or(fn)`](https://pkg.go.dev/gosalusa.com/optional#Optional.Or) resolves a
-fallback that is only built when the value is absent. A valid `Optional` is
+[`Or(fn)`](https://pkg.go.dev/gosalusa.com/option#Option.Or) resolves a
+fallback that is only built when the value is absent. A valid `Option` is
 returned unchanged and `fn` is never called, so an expensive default costs
 nothing on the common path:
 
 ```go
-nickname := user.Nickname.Or(func() optional.Optional[string] {
-	return optional.Some(displayNameFor(user))
+nickname := user.Nickname.Or(func() option.Option[string] {
+	return option.Some(displayNameFor(user))
 })
 ```
 
-This is the `Optional[T]`-shaped counterpart of `OrElse`: `OrElse` takes an
+This is the `Option[T]`-shaped counterpart of `OrElse`: `OrElse` takes an
 eagerly built value, `Or` takes a function.
 
 ### Iteration
 
-[`All()`](https://pkg.go.dev/gosalusa.com/optional#Optional.All) returns an
+[`All()`](https://pkg.go.dev/gosalusa.com/option#Option.All) returns an
 [`iter.Seq[T]`](https://pkg.go.dev/iter#Seq) over the wrapped value — one value
-for a valid `Optional`, nothing for an invalid one:
+for a valid `Option`, nothing for an invalid one:
 
 ```go
 for name := range user.Nickname.All() {
@@ -243,9 +255,9 @@ parts := stream.New(user.Nickname.All()).Slice()
 ## Import
 
 ```go
-import "gosalusa.com/optional"
+import "gosalusa.com/option"
 
 type User struct {
-	AvatarURL optional.Optional[string] `db:"avatar_url"`
+	AvatarURL option.Option[string] `db:"avatar_url"`
 }
 ```

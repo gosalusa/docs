@@ -88,4 +88,11 @@ name becomes the operation ID when none is set.
 
 [`Routes()`](https://pkg.go.dev/gosalusa.com/router#Router.Routes) returns every registered route, [`PrintRoutes`](https://pkg.go.dev/gosalusa.com/router#Router.PrintRoutes) prints them as a
 table, and [`Validate`](https://pkg.go.dev/gosalusa.com/router#Router.Validate) runs the [`validate.Validator`](https://pkg.go.dev/gosalusa.com/validate#Validator) interface against each
-route's handler so the kernel can catch missing dependencies at startup.
+route's handler and its route-level middleware so the kernel can catch missing
+dependencies at startup.
+
+[`Route.Middleware`](https://pkg.go.dev/gosalusa.com/router#Route.Middleware)
+installs the wrapped handler on the underlying route, so middleware added after
+the route is registered still runs. A middleware that implements
+[`validate.Validator`](https://pkg.go.dev/gosalusa.com/validate#Validator) is
+also validated alongside the handler.

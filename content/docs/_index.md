@@ -42,7 +42,7 @@ handlers, and your API.
 
 {{< cards >}}
 {{< card link="/docs/database/" title="Database" subtitle="Models, relationships, a query builder, and migrations" icon="database" >}}
-{{< card link="/docs/nullable" title="Optional Values" subtitle="Absent and nullable values with `optional.Optional[T]`" icon="adjustments" >}}
+{{< card link="/docs/nullable" title="Option Values" subtitle="Absent and nullable values with `option.Option[T]`" icon="adjustments" >}}
 {{< card link="/docs/collections" title="Maps & Sets" subtitle="Generic collections built on Go iterators" icon="collection" >}}
 {{< card link="/docs/json-io" title="JSON I/O" subtitle="Expose Go values as `io.Reader` and `io.Writer`" icon="code" >}}
 {{< card link="/docs/caching" title="Caching" subtitle="Key-value caches for transient data" icon="lightning-bolt" >}}
